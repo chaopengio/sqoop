@@ -1,0 +1,3907 @@
+diff --git a/build.xml b/build.xml
+index f97a36d..d614d09 100644
+--- a/build.xml
++++ b/build.xml
+@@ -172,19 +172,6 @@
+         <property name="avrohadoopprofile" value="2" />
+       </then>
+     </elseif>
+-    
+-    <elseif>
+-      <equals arg1="${hadoopversion}" arg2="271" />
+-      <then>
+-        <property name="hadoop.version" value="2.7.1" />
+-        <property name="hbase94.version" value="1.1.2" />
+-        <property name="zookeeper.version" value="3.4.2" />
+-        <property name="hadoop.version.full" value="2.7.1" />
+-        <property name="hcatalog.version" value="1.2.1" />
+-        <property name="hbasecompatprofile" value="2" />
+-        <property name="avrohadoopprofile" value="2" />
+-      </then>
+-    </elseif>
+ 
+     <elseif>
+       <equals arg1="${hadoopversion}" arg2="210" />
+@@ -654,7 +641,7 @@
+   </target>
+ 
+   <target name="package"
+-      depends="jar-all,compile-all,ivy-retrieve-redist,scripts"
++      depends="jar-all,compile-all,docs,ivy-retrieve-redist,scripts"
+       description="Create a redistributable package">
+ 
+     <mkdir dir="${dist.dir}"/>
+diff --git a/ivy.xml b/ivy.xml
+index 02db3ac..a93d0af 100644
+--- a/ivy.xml
++++ b/ivy.xml
+@@ -44,7 +44,7 @@ under the License.
+     <conf name="avro" visibility="private" extends="avrohadoop${avrohadoopprofile}" />
+     <conf name="avrohadoop1" visibility="private" />
+     <conf name="avrohadoop2" visibility="private" />
+-      <conf name="hcatalog13" visibility="private" />
++    <conf name="hcatalog13" visibility="private" />
+     <conf name="hadoop23" visibility="private"
+       extends="common,runtime,avro,hbase${hbaseprofile},hcatalog${hcatprofile},accumulo" />
+     <conf name="hadoop20" visibility="private"
+@@ -194,11 +194,7 @@ under the License.
+       <exclude org="com.twitter" module="parquet-hive-bundle"/>
+     </dependency>
+ 
+-    <dependency org="mysql" name="mysql-connector-java" rev="${mysqldb.version}"
+-            conf="common->default;redist->default"/>
+-
+-
+-      <!-- dependencies for static analysis -->
++    <!-- dependencies for static analysis -->
+     <dependency org="checkstyle" name="checkstyle" rev="${checkstyle.version}"
+       conf="checkstyle->default" />
+ 
+@@ -304,7 +300,7 @@ under the License.
+     <dependency org="org.postgresql" name="postgresql"
+       rev="${postgresql.version}" conf="common->default" />
+ 
+-      <dependency org="org.apache.avro" name="avro" rev="${avro.version}"
++    <dependency org="org.apache.avro" name="avro" rev="${avro.version}"
+       conf="avro->default;redist->default">
+       <exclude org="org.slf4j" module="slf4j-api"/>
+       <exclude org="org.mortbay.jetty" module="jetty"/>
+diff --git a/ivy/libraries.properties b/ivy/libraries.properties
+index 78f3c31..2e3d884 100644
+--- a/ivy/libraries.properties
++++ b/ivy/libraries.properties
+@@ -32,8 +32,6 @@ commons-logging.version=1.0.4
+ commons-net.version=3.1
+ 
+ hsqldb.version=1.8.0.10
+-mysqldb.version=5.1.34
+-hadoop.version=0.20.2
+ 
+ ivy.version=2.3.0
+ 
+diff --git a/ivy/libraries.properties.orig b/ivy/libraries.properties.orig
+deleted file mode 100644
+index 2e3d884..0000000
+--- a/ivy/libraries.properties.orig
++++ /dev/null
+@@ -1,51 +0,0 @@
+-# Licensed to the Apache Software Foundation (ASF) under one
+-# or more contributor license agreements.  See the NOTICE file
+-# distributed with this work for additional information
+-# regarding copyright ownership.  The ASF licenses this file
+-# to you under the Apache License, Version 2.0 (the
+-# "License"); you may not use this file except in compliance
+-# with the License.  You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing,
+-# software distributed under the License is distributed on an
+-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+-# KIND, either express or implied.  See the License for the
+-# specific language governing permissions and limitations
+-# under the License.
+-
+-# This properties file lists the versions of the various artifacts we use.
+-# It drives ivy and the generation of a maven POM
+-
+-avro.version=1.7.5
+-
+-kite-data.version=1.0.0
+-
+-checkstyle.version=5.0
+-
+-commons-cli.version=1.2
+-commons-collections.version=3.1
+-commons-io.version=1.4
+-commons-lang.version=2.4
+-commons-logging.version=1.0.4
+-commons-net.version=3.1
+-
+-hsqldb.version=1.8.0.10
+-
+-ivy.version=2.3.0
+-
+-junit.version=4.11
+-mockito-all.version=1.9.5
+-
+-h2.version=1.3.170
+-
+-log4j.version=1.2.16
+-
+-mvn.version=2.0.10
+-
+-rats-lib.version=0.5.1
+-
+-aspectj.version=1.6.11
+-
+-postgresql.version=9.2-1003-jdbc4
+diff --git a/ivy/sqoop-test.xml b/ivy/sqoop-test.xml
+index 8be54bf..01b0d51 100644
+--- a/ivy/sqoop-test.xml
++++ b/ivy/sqoop-test.xml
+@@ -49,8 +49,5 @@ under the License.
+       conf="common->default"/>
+     <dependency org="hsqldb" name="hsqldb" rev="${hsqldb.version}"
+       conf="common->default"/>
+-    <dependency org="mysql" name="mysql-connector-java" rev="${mysqldb.version}"
+-      conf="common->default"/>
+-
+   </dependencies>
+ </ivy-module>
+diff --git a/ivy/sqoop.xml b/ivy/sqoop.xml
+index d26b121..bb957d9 100644
+--- a/ivy/sqoop.xml
++++ b/ivy/sqoop.xml
+@@ -44,8 +44,6 @@ under the License.
+       rev="${hadoop.version}" conf="common->default"/>
+     <dependency org="hsqldb" name="hsqldb" rev="${hsqldb.version}"
+       conf="common->default"/>
+-    <dependency org="mysql" name="mysql-connector-java" rev="${mysqldb.version}"
+-      conf="common->default"/>
+     <dependency org="commons-io" name="commons-io" rev="${commons-io.version}"
+       conf="common->default"/>
+     <dependency org="commons-cli" name="commons-cli"
+diff --git a/src/java/org/apache/sqoop/manager/SqlManager.java b/src/java/org/apache/sqoop/manager/SqlManager.java
+index 47540a7..ead581d 100644
+--- a/src/java/org/apache/sqoop/manager/SqlManager.java
++++ b/src/java/org/apache/sqoop/manager/SqlManager.java
+@@ -18,27 +18,6 @@
+ 
+ package org.apache.sqoop.manager;
+ 
+-import com.cloudera.sqoop.SqoopOptions;
+-import com.cloudera.sqoop.hbase.HBaseUtil;
+-import com.cloudera.sqoop.mapreduce.DataDrivenImportJob;
+-import com.cloudera.sqoop.mapreduce.HBaseImportJob;
+-import com.cloudera.sqoop.mapreduce.ImportJobBase;
+-import com.cloudera.sqoop.mapreduce.JdbcExportJob;
+-import com.cloudera.sqoop.mapreduce.JdbcUpdateExportJob;
+-import com.cloudera.sqoop.mapreduce.db.DataDrivenDBInputFormat;
+-import com.cloudera.sqoop.util.ExportException;
+-import com.cloudera.sqoop.util.ImportException;
+-import com.cloudera.sqoop.util.ResultSetPrinter;
+-import org.apache.commons.lang.StringUtils;
+-import org.apache.commons.logging.Log;
+-import org.apache.commons.logging.LogFactory;
+-import org.apache.sqoop.accumulo.AccumuloUtil;
+-import org.apache.sqoop.mapreduce.AccumuloImportJob;
+-import org.apache.sqoop.mapreduce.HBaseBulkImportJob;
+-import org.apache.sqoop.mapreduce.JdbcCallExportJob;
+-import org.apache.sqoop.util.LoggingUtils;
+-import org.apache.sqoop.util.SqlTypeMap;
+-
+ import java.io.IOException;
+ import java.io.PrintWriter;
+ import java.sql.Connection;
+@@ -58,6 +37,28 @@
+ import java.util.Properties;
+ import java.util.TreeMap;
+ 
++import org.apache.commons.lang.StringUtils;
++import org.apache.commons.logging.Log;
++import org.apache.commons.logging.LogFactory;
++import org.apache.sqoop.accumulo.AccumuloUtil;
++import org.apache.sqoop.mapreduce.AccumuloImportJob;
++import org.apache.sqoop.mapreduce.HBaseBulkImportJob;
++import org.apache.sqoop.mapreduce.JdbcCallExportJob;
++import org.apache.sqoop.util.LoggingUtils;
++import org.apache.sqoop.util.SqlTypeMap;
++
++import com.cloudera.sqoop.SqoopOptions;
++import com.cloudera.sqoop.hbase.HBaseUtil;
++import com.cloudera.sqoop.mapreduce.DataDrivenImportJob;
++import com.cloudera.sqoop.mapreduce.HBaseImportJob;
++import com.cloudera.sqoop.mapreduce.ImportJobBase;
++import com.cloudera.sqoop.mapreduce.JdbcExportJob;
++import com.cloudera.sqoop.mapreduce.JdbcUpdateExportJob;
++import com.cloudera.sqoop.mapreduce.db.DataDrivenDBInputFormat;
++import com.cloudera.sqoop.util.ExportException;
++import com.cloudera.sqoop.util.ImportException;
++import com.cloudera.sqoop.util.ResultSetPrinter;
++
+ /**
+  * ConnManager implementation for generic SQL-compliant database.
+  * This is an abstract class; it requires a database-specific
+diff --git a/src/java/org/apache/sqoop/metastore/JobStorageFactory.java b/src/java/org/apache/sqoop/metastore/JobStorageFactory.java
+index c3b8968..2edc33b 100644
+--- a/src/java/org/apache/sqoop/metastore/JobStorageFactory.java
++++ b/src/java/org/apache/sqoop/metastore/JobStorageFactory.java
+@@ -18,61 +18,57 @@
+ 
+ package org.apache.sqoop.metastore;
+ 
+-import com.cloudera.sqoop.metastore.JobStorage;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.sqoop.config.ConfigurationHelper;
+-
+ import java.util.List;
+ import java.util.Map;
+ 
++import org.apache.hadoop.conf.Configuration;
++import org.apache.sqoop.config.ConfigurationHelper;
++import com.cloudera.sqoop.metastore.JobStorage;
++
+ /**
+  * Factory that produces the correct JobStorage system to work with
+  * a particular job descriptor.
+  */
+ public class JobStorageFactory {
+ 
+-    private Configuration conf;
+-
+-    /**
+-     * Configuration key describing the list of JobStorage implementations
+-     * to use to handle jobs.
+-     */
+-    public static final String AVAILABLE_STORAGES_KEY =
+-            "sqoop.job.storage.implementations";
++  private Configuration conf;
+ 
+-    /**
+-     * The default list of available JobStorage implementations.
+-     */
+-    private static final String DEFAULT_AVAILABLE_STORAGES =
+-            "org.apache.sqoop.metastore.mysqldb.MysqldbJobStorage," +
+-                    "com.cloudera.sqoop.metastore.hsqldb.HsqldbJobStorage,"
+-                    + "com.cloudera.sqoop.metastore.hsqldb.AutoHsqldbStorage";
++  /**
++   * Configuration key describing the list of JobStorage implementations
++   * to use to handle jobs.
++   */
++  public static final String AVAILABLE_STORAGES_KEY =
++      "sqoop.job.storage.implementations";
+ 
++  /** The default list of available JobStorage implementations. */
++  private static final String DEFAULT_AVAILABLE_STORAGES =
++      "com.cloudera.sqoop.metastore.hsqldb.HsqldbJobStorage,"
++      + "com.cloudera.sqoop.metastore.hsqldb.AutoHsqldbStorage";
+ 
+-    public JobStorageFactory(Configuration config) {
+-        this.conf = config;
++  public JobStorageFactory(Configuration config) {
++    this.conf = config;
+ 
+-        // Ensure that we always have an available storages list.
+-        if (this.conf.get(AVAILABLE_STORAGES_KEY) == null) {
+-            this.conf.set(AVAILABLE_STORAGES_KEY, DEFAULT_AVAILABLE_STORAGES);
+-        }
++    // Ensure that we always have an available storages list.
++    if (this.conf.get(AVAILABLE_STORAGES_KEY) == null) {
++      this.conf.set(AVAILABLE_STORAGES_KEY, DEFAULT_AVAILABLE_STORAGES);
+     }
++  }
+ 
+-    /**
+-     * Given a storage descriptor, determine the correct JobStorage
+-     * implementation to use to connect to the storage resource and return an
+-     * instance of it -- or null if no JobStorage instance is appropriate.
+-     */
+-    public JobStorage getJobStorage(Map<String, String> descriptor) {
+-        List<JobStorage> storages = ConfigurationHelper.getInstances(
+-                conf, AVAILABLE_STORAGES_KEY, JobStorage.class);
+-        for (JobStorage stor : storages) {
+-            if (stor.canAccept(descriptor)) {
+-                return stor;
+-            }
+-        }
+-
+-        return null;
++  /**
++   * Given a storage descriptor, determine the correct JobStorage
++   * implementation to use to connect to the storage resource and return an
++   * instance of it -- or null if no JobStorage instance is appropriate.
++   */
++  public JobStorage getJobStorage(Map<String, String> descriptor) {
++    List<JobStorage> storages = ConfigurationHelper.getInstances(
++        conf, AVAILABLE_STORAGES_KEY, JobStorage.class);
++    for (JobStorage stor : storages) {
++      if (stor.canAccept(descriptor)) {
++        return stor;
++      }
+     }
++
++    return null;
++  }
+ }
+ 
+diff --git a/src/java/org/apache/sqoop/metastore/hsqldb/HsqldbJobStorage.java b/src/java/org/apache/sqoop/metastore/hsqldb/HsqldbJobStorage.java
+index 44f2b67..a0f29fd 100644
+--- a/src/java/org/apache/sqoop/metastore/hsqldb/HsqldbJobStorage.java
++++ b/src/java/org/apache/sqoop/metastore/hsqldb/HsqldbJobStorage.java
+@@ -17,15 +17,8 @@
+  */
+ package org.apache.sqoop.metastore.hsqldb;
+ 
+-import com.cloudera.sqoop.SqoopOptions;
+-import com.cloudera.sqoop.metastore.JobData;
+-import com.cloudera.sqoop.metastore.JobStorage;
+-import com.cloudera.sqoop.tool.SqoopTool;
+-import org.apache.commons.logging.Log;
+-import org.apache.commons.logging.LogFactory;
+-import org.apache.hadoop.conf.Configuration;
+-
+ import java.io.IOException;
++
+ import java.sql.Connection;
+ import java.sql.DatabaseMetaData;
+ import java.sql.DriverManager;
+@@ -38,6 +31,16 @@
+ import java.util.Map;
+ import java.util.Properties;
+ 
++import org.apache.commons.logging.Log;
++import org.apache.commons.logging.LogFactory;
++
++import org.apache.hadoop.conf.Configuration;
++
++import com.cloudera.sqoop.SqoopOptions;
++import com.cloudera.sqoop.metastore.JobData;
++import com.cloudera.sqoop.metastore.JobStorage;
++import com.cloudera.sqoop.tool.SqoopTool;
++
+ /**
+  * JobStorage implementation that uses an HSQLDB-backed database to
+  * hold job information.
+@@ -174,7 +177,7 @@ protected void init() throws IOException {
+             metastoreUser, metastorePassword);
+       }
+ 
+-      connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
++      connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+       connection.setAutoCommit(false);
+ 
+       // Initialize the root schema.
+@@ -238,8 +241,9 @@ public void close() throws IOException {
+   @Override
+   /** {@inheritDoc} */
+   public boolean canAccept(Map<String, String> descriptor) {
+-      String metaConnectString = descriptor.get(META_CONNECT_KEY);
+-      return metaConnectString != null && metaConnectString.startsWith("jdbc:hsqldb");
++    // We return true if the desciptor contains a connect string to find
++    // the database.
++    return descriptor.get(META_CONNECT_KEY) != null;
+   }
+ 
+   @Override
+diff --git a/src/java/org/apache/sqoop/metastore/mysqldb/MysqldbJobStorage.java b/src/java/org/apache/sqoop/metastore/mysqldb/MysqldbJobStorage.java
+deleted file mode 100644
+index 911a71a..0000000
+--- a/src/java/org/apache/sqoop/metastore/mysqldb/MysqldbJobStorage.java
++++ /dev/null
+@@ -1,801 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.sqoop.metastore.mysqldb;
+-
+-import com.cloudera.sqoop.SqoopOptions;
+-import com.cloudera.sqoop.metastore.JobData;
+-import com.cloudera.sqoop.metastore.JobStorage;
+-import com.cloudera.sqoop.tool.SqoopTool;
+-import org.apache.commons.logging.Log;
+-import org.apache.commons.logging.LogFactory;
+-import org.apache.hadoop.conf.Configuration;
+-
+-import java.io.IOException;
+-import java.sql.Connection;
+-import java.sql.DatabaseMetaData;
+-import java.sql.DriverManager;
+-import java.sql.PreparedStatement;
+-import java.sql.ResultSet;
+-import java.sql.SQLException;
+-import java.sql.Statement;
+-import java.util.ArrayList;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Properties;
+-
+-/**
+- * JobStorage implementation that uses an MysqlDB-backed database to
+- * hold job information.
+- */
+-public class MysqldbJobStorage extends JobStorage {
+-
+-    public static final Log LOG = LogFactory.getLog(
+-            MysqldbJobStorage.class.getName());
+-
+-    /** descriptor key identifying the connect string for the metastore. */
+-    public static final String META_CONNECT_KEY = "metastore.connect.string";
+-
+-    /** descriptor key identifying the username to use when connecting
+-     * to the metastore.
+-     */
+-    public static final String META_USERNAME_KEY = "metastore.username";
+-
+-    /** descriptor key identifying the password to use when connecting
+-     * to the metastore.
+-     */
+-    public static final String META_PASSWORD_KEY = "metastore.password";
+-
+-
+-    /** Default name for the root metadata table in HSQLDB. */
+-    private static final String DEFAULT_ROOT_TABLE_NAME = "SQOOP_ROOT";
+-
+-    /** Configuration key used to override root table name. */
+-    public static final String ROOT_TABLE_NAME_KEY =
+-            "sqoop.mysqldb.root.table.name";
+-
+-    /** root metadata table key used to define the current schema version. */
+-    private static final String STORAGE_VERSION_KEY =
+-            "sqoop.mysqldb.job.storage.version";
+-
+-    /** The current version number for the schema edition. */
+-    private static final int CUR_STORAGE_VERSION = 0;
+-
+-    /** root metadata table key used to define the job table name. */
+-    private static final String SESSION_TABLE_KEY =
+-            "sqoop.mysqldb.job.info.table";
+-
+-    /** Default value for SESSION_TABLE_KEY. */
+-    private static final String DEFAULT_SESSION_TABLE_NAME =
+-            "SQOOP_SESSIONS";
+-
+-    /** Per-job key with propClass 'schema' that defines the set of
+-     * properties valid to be defined for propClass 'SqoopOptions'. */
+-    private static final String PROPERTY_SET_KEY =
+-            "sqoop.property.set.id";
+-
+-    /** Current value for PROPERTY_SET_KEY. */
+-    private static final String CUR_PROPERTY_SET_ID = "0";
+-
+-    // The following are values for propClass in the v0 schema which
+-    // describe different aspects of the stored metadata.
+-
+-    /** Property class for properties about the stored data itself. */
+-    private static final String PROPERTY_CLASS_SCHEMA = "schema";
+-
+-    /** Property class for properties that are loaded into SqoopOptions. */
+-    private static final String PROPERTY_CLASS_SQOOP_OPTIONS = "SqoopOptions";
+-
+-    /** Property class for properties that are loaded into a Configuration. */
+-    private static final String PROPERTY_CLASS_CONFIG = "config";
+-
+-    /**
+-     * Per-job key with propClass 'schema' that specifies the SqoopTool
+-     * to load.
+-     */
+-    private static final String SQOOP_TOOL_KEY = "sqoop.tool";
+-
+-
+-    private Map<String, String> connectedDescriptor;
+-    private String metastoreConnectStr;
+-    private String metastoreUser;
+-    private String metastorePassword;
+-    private Connection connection;
+-
+-    protected Connection getConnection() {
+-        return this.connection;
+-    }
+-
+-    // After connection to the database and initialization of the
+-    // schema, this holds the name of the job table.
+-    private String jobTableName;
+-
+-    protected void setMetastoreConnectStr(String connectStr) {
+-        this.metastoreConnectStr = connectStr;
+-    }
+-
+-    protected void setMetastoreUser(String user) {
+-        this.metastoreUser = user;
+-    }
+-
+-    protected void setMetastorePassword(String pass) {
+-        this.metastorePassword = pass;
+-    }
+-
+-    private static final String DB_DRIVER_CLASS = "com.mysql.jdbc.Driver";
+-
+-    /**
+-     * Set the descriptor used to open() this storage.
+-     */
+-    protected void setConnectedDescriptor(Map<String, String> descriptor) {
+-        this.connectedDescriptor = descriptor;
+-    }
+-
+-    @Override
+-    /**
+-     * Initialize the connection to the database.
+-     */
+-    public void open(Map<String, String> descriptor) throws IOException {
+-        setMetastoreConnectStr(descriptor.get(META_CONNECT_KEY));
+-        setMetastoreUser(descriptor.get(META_USERNAME_KEY));
+-        setMetastorePassword(descriptor.get(META_PASSWORD_KEY));
+-        setConnectedDescriptor(descriptor);
+-
+-        init();
+-    }
+-
+-    protected void init() throws IOException {
+-        try {
+-            // Load/initialize the JDBC driver.
+-            Class.forName(DB_DRIVER_CLASS);
+-        } catch (ClassNotFoundException cnfe) {
+-            throw new IOException("Could not load MySQLDb JDBC driver", cnfe);
+-        }
+-
+-        try {
+-            if (null == metastoreUser) {
+-                this.connection = DriverManager.getConnection(metastoreConnectStr);
+-            } else {
+-                this.connection = DriverManager.getConnection(metastoreConnectStr,
+-                        metastoreUser, metastorePassword);
+-            }
+-
+-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+-            connection.setAutoCommit(false);
+-
+-            // Initialize the root schema.
+-            if (!rootTableExists()) {
+-                createRootTable();
+-            }
+-
+-            // Check the schema version.
+-            String curStorageVerStr = getRootProperty(STORAGE_VERSION_KEY, null);
+-            int actualStorageVer = -1;
+-            try {
+-                actualStorageVer = Integer.valueOf(curStorageVerStr);
+-            } catch (NumberFormatException nfe) {
+-                LOG.warn("Could not interpret as a number: " + curStorageVerStr);
+-            }
+-            if (actualStorageVer != CUR_STORAGE_VERSION) {
+-                LOG.error("Can not interpret metadata schema");
+-                LOG.error("The metadata schema version is " + curStorageVerStr);
+-                LOG.error("The highest version supported is " + CUR_STORAGE_VERSION);
+-                LOG.error("To use this version of Sqoop, "
+-                        + "you must downgrade your metadata schema.");
+-                throw new IOException("Invalid metadata version.");
+-            }
+-
+-            // Initialize the versioned schema.
+-            initV0Schema();
+-        } catch (SQLException sqle) {
+-            if (null != connection) {
+-                try {
+-                    connection.rollback();
+-                } catch (SQLException e2) {
+-                    LOG.warn("Error rolling back transaction in error handler: " + e2);
+-                }
+-            }
+-
+-            throw new IOException("Exception creating SQL connection", sqle);
+-        }
+-    }
+-
+-    @Override
+-    public void close() throws IOException {
+-        if (null != this.connection) {
+-            try {
+-                LOG.debug("Flushing current transaction");
+-                this.connection.commit();
+-            } catch (SQLException sqlE) {
+-                throw new IOException("Exception committing connection", sqlE);
+-            }
+-
+-            try {
+-                LOG.debug("Closing connection");
+-                this.connection.close();
+-            } catch (SQLException sqlE) {
+-                throw new IOException("Exception closing connection", sqlE);
+-            } finally {
+-                this.connection = null;
+-            }
+-        }
+-    }
+-
+-    @Override
+-    /** {@inheritDoc} */
+-    public boolean canAccept(Map<String, String> descriptor) {
+-        String metaConnectString = descriptor.get(META_CONNECT_KEY);
+-        return metaConnectString != null && metaConnectString.startsWith("jdbc:mysql");
+-    }
+-
+-    @Override
+-    /** {@inheritDoc} */
+-    public JobData read(String jobName) throws IOException {
+-        try {
+-            if (!jobExists(jobName)) {
+-                LOG.error("Cannot restore job: " + jobName);
+-                LOG.error("(No such job)");
+-                throw new IOException("Cannot restore missing job " + jobName);
+-            }
+-
+-            LOG.debug("Restoring job: " + jobName);
+-            Properties schemaProps = getV0Properties(jobName,
+-                    PROPERTY_CLASS_SCHEMA);
+-            Properties sqoopOptProps = getV0Properties(jobName,
+-                    PROPERTY_CLASS_SQOOP_OPTIONS);
+-            Properties configProps = getV0Properties(jobName,
+-                    PROPERTY_CLASS_CONFIG);
+-
+-            // Check that we're not using a saved job from a previous
+-            // version whose functionality has been deprecated.
+-            String thisPropSetId = schemaProps.getProperty(PROPERTY_SET_KEY);
+-            LOG.debug("System property set: " + CUR_PROPERTY_SET_ID);
+-            LOG.debug("Stored property set: " + thisPropSetId);
+-            if (!CUR_PROPERTY_SET_ID.equals(thisPropSetId)) {
+-                LOG.warn("The property set present in this database was written by");
+-                LOG.warn("an incompatible version of Sqoop. This may result in an");
+-                LOG.warn("incomplete operation.");
+-                // TODO(aaron): Should this fail out-right?
+-            }
+-
+-            String toolName = schemaProps.getProperty(SQOOP_TOOL_KEY);
+-            if (null == toolName) {
+-                // Don't know what tool to create.
+-                throw new IOException("Incomplete metadata; missing "
+-                        + SQOOP_TOOL_KEY);
+-            }
+-
+-            SqoopTool tool = SqoopTool.getTool(toolName);
+-            if (null == tool) {
+-                throw new IOException("Error in job metadata: invalid tool "
+-                        + toolName);
+-            }
+-
+-            Configuration conf = new Configuration();
+-            for (Map.Entry<Object, Object> entry : configProps.entrySet()) {
+-                conf.set(entry.getKey().toString(), entry.getValue().toString());
+-            }
+-
+-            SqoopOptions opts = new SqoopOptions();
+-            opts.setConf(conf);
+-            opts.loadProperties(sqoopOptProps);
+-
+-            // Set the job connection information for this job.
+-            opts.setJobName(jobName);
+-            opts.setStorageDescriptor(connectedDescriptor);
+-
+-            return new JobData(opts, tool);
+-        } catch (SQLException sqlE) {
+-            throw new IOException("Error communicating with database", sqlE);
+-        }
+-    }
+-
+-    private boolean jobExists(String jobName) throws SQLException {
+-        PreparedStatement s = connection.prepareStatement(
+-                "SELECT COUNT(job_name) FROM " + this.jobTableName
+-                        + " WHERE job_name = ? GROUP BY job_name");
+-        ResultSet rs = null;
+-        try {
+-            s.setString(1, jobName);
+-            rs = s.executeQuery();
+-            if (rs.next()) {
+-                return true; // We got a result, meaning the job exists.
+-            }
+-        } finally {
+-            if (null != rs) {
+-                try {
+-                    rs.close();
+-                } catch (SQLException sqlE) {
+-                    LOG.warn("Error closing result set: " + sqlE);
+-                }
+-            }
+-
+-            s.close();
+-        }
+-
+-        return false; // No result.
+-    }
+-
+-    @Override
+-    /** {@inheritDoc} */
+-    public void delete(String jobName) throws IOException {
+-        try {
+-            if (!jobExists(jobName)) {
+-                LOG.error("No such job: " + jobName);
+-            } else {
+-                LOG.debug("Deleting job: " + jobName);
+-                PreparedStatement s = connection.prepareStatement("DELETE FROM "
+-                        + this.jobTableName + " WHERE job_name = ?");
+-                try {
+-                    s.setString(1, jobName);
+-                    s.executeUpdate();
+-                } finally {
+-                    s.close();
+-                }
+-                connection.commit();
+-            }
+-        } catch (SQLException sqlEx) {
+-            try {
+-                connection.rollback();
+-            } catch (SQLException e2) {
+-                LOG.warn("Error rolling back transaction in error handler: " + e2);
+-            }
+-            throw new IOException("Error communicating with database", sqlEx);
+-        }
+-    }
+-
+-    @Override
+-    /** {@inheritDoc} */
+-    public void create(String jobName, JobData data)
+-            throws IOException {
+-        try {
+-            if (jobExists(jobName)) {
+-                LOG.error("Cannot create job " + jobName
+-                        + ": it already exists");
+-                throw new IOException("Job " + jobName + " already exists");
+-            }
+-        } catch (SQLException sqlE) {
+-            throw new IOException("Error communicating with database", sqlE);
+-        }
+-
+-        createInternal(jobName, data);
+-    }
+-
+-    /**
+-     * Actually insert/update the resources for this job.
+-     */
+-    private void createInternal(String jobName, JobData data)
+-            throws IOException {
+-        try {
+-            LOG.debug("Creating job: " + jobName);
+-
+-            // Save the name of the Sqoop tool.
+-            setV0Property(jobName, PROPERTY_CLASS_SCHEMA, SQOOP_TOOL_KEY,
+-                    data.getSqoopTool().getToolName());
+-
+-            // Save the property set id.
+-            setV0Property(jobName, PROPERTY_CLASS_SCHEMA, PROPERTY_SET_KEY,
+-                    CUR_PROPERTY_SET_ID);
+-
+-            // Save all properties of the SqoopOptions.
+-            Properties props = data.getSqoopOptions().writeProperties();
+-            setV0Properties(jobName, PROPERTY_CLASS_SQOOP_OPTIONS, props);
+-
+-            // And save all unique properties of the configuration.
+-            Configuration saveConf = data.getSqoopOptions().getConf();
+-            Configuration baseConf = new Configuration();
+-
+-            for (Map.Entry<String, String> entry : saveConf) {
+-                String key = entry.getKey();
+-                String rawVal = saveConf.getRaw(key);
+-                String baseVal = baseConf.getRaw(key);
+-                if (baseVal != null && rawVal.equals(baseVal)) {
+-                    continue; // Don't save this; it's set in the base configuration.
+-                }
+-
+-                LOG.debug("Saving " + key + " => " + rawVal + " / " + baseVal);
+-                setV0Property(jobName, PROPERTY_CLASS_CONFIG, key, rawVal);
+-            }
+-
+-            connection.commit();
+-        } catch (SQLException sqlE) {
+-            try {
+-                connection.rollback();
+-            } catch (SQLException sqlE2) {
+-                LOG.warn("Exception rolling back transaction during error handling: "
+-                        + sqlE2);
+-            }
+-            throw new IOException("Error communicating with database", sqlE);
+-        }
+-    }
+-
+-    @Override
+-    /** {@inheritDoc} */
+-    public void update(String jobName, JobData data)
+-            throws IOException {
+-        try {
+-            if (!jobExists(jobName)) {
+-                LOG.error("Cannot update job " + jobName + ": not found");
+-                throw new IOException("Job " + jobName + " does not exist");
+-            }
+-        } catch (SQLException sqlE) {
+-            throw new IOException("Error communicating with database", sqlE);
+-        }
+-
+-        // Since we set properties with update-or-insert, this is the same
+-        // as create on this system.
+-        createInternal(jobName, data);
+-    }
+-
+-    @Override
+-    /** {@inheritDoc} */
+-    public List<String> list() throws IOException {
+-        ResultSet rs = null;
+-        try {
+-            PreparedStatement s = connection.prepareStatement(
+-                    "SELECT DISTINCT job_name FROM " + this.jobTableName);
+-            try {
+-                rs = s.executeQuery();
+-                ArrayList<String> jobs = new ArrayList<String>();
+-                while (rs.next()) {
+-                    jobs.add(rs.getString(1));
+-                }
+-
+-                return jobs;
+-            } finally {
+-                if (null != rs) {
+-                    try {
+-                        rs.close();
+-                    } catch (SQLException sqlE) {
+-                        LOG.warn("Error closing resultset: " + sqlE);
+-                    }
+-                }
+-
+-                if (null != s) {
+-                    s.close();
+-                }
+-            }
+-        } catch (SQLException sqlE) {
+-            throw new IOException("Error communicating with database", sqlE);
+-        }
+-    }
+-
+-    // Determine the name to use for the root metadata table.
+-    private String getRootTableName() {
+-        Configuration conf = getConf();
+-        return conf.get(ROOT_TABLE_NAME_KEY, DEFAULT_ROOT_TABLE_NAME);
+-    }
+-
+-    private boolean tableExists(String table) throws SQLException {
+-        LOG.debug("Checking for table: " + table);
+-        DatabaseMetaData dbmd = connection.getMetaData();
+-        String [] tableTypes = { "TABLE" };
+-        ResultSet rs = dbmd.getTables(null, null, null, tableTypes);
+-        if (null != rs) {
+-            try {
+-                while (rs.next()) {
+-                    if (table.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
+-                        LOG.debug("Found table: " + table);
+-                        return true;
+-                    }
+-                }
+-            } finally {
+-                rs.close();
+-            }
+-        }
+-
+-        LOG.debug("Could not find table.");
+-        return false;
+-    }
+-
+-    private boolean rootTableExists() throws SQLException {
+-        String rootTableName = getRootTableName();
+-        return tableExists(rootTableName);
+-    }
+-
+-    private void createRootTable() throws SQLException {
+-        String rootTableName = getRootTableName();
+-        LOG.debug("Creating root table: " + rootTableName);
+-
+-        // TODO: Sanity-check the value of rootTableName to ensure it is
+-        // not a SQL-injection attack vector.
+-        Statement s = connection.createStatement();
+-        try {
+-            s.executeUpdate("CREATE TABLE " + rootTableName + " ("
+-                    + "version INT, "
+-                    + "propname VARCHAR(128) NOT NULL, "
+-                    + "propval VARCHAR(256), "
+-                    + "CONSTRAINT " + rootTableName + "_unq UNIQUE (version, propname))");
+-        } finally {
+-            s.close();
+-        }
+-
+-        setRootProperty(STORAGE_VERSION_KEY, null,
+-                Integer.toString(CUR_STORAGE_VERSION));
+-
+-        LOG.debug("Saving root table.");
+-        connection.commit();
+-    }
+-
+-    /**
+-     * Look up a value for the specified version (may be null) in the
+-     * root metadata table.
+-     */
+-    private String getRootProperty(String propertyName, Integer version)
+-            throws SQLException {
+-        LOG.debug("Looking up property " + propertyName + " for version "
+-                + version);
+-        PreparedStatement s = null;
+-        ResultSet rs = null;
+-
+-        try {
+-            if (null == version) {
+-                s = connection.prepareStatement(
+-                        "SELECT propval FROM " + getRootTableName()
+-                                + " WHERE version IS NULL AND propname = ?");
+-                s.setString(1, propertyName);
+-            } else {
+-                s = connection.prepareStatement(
+-                        "SELECT propval FROM " + getRootTableName() + " WHERE version = ? "
+-                                + " AND propname = ?");
+-                s.setInt(1, version);
+-                s.setString(2, propertyName);
+-            }
+-
+-            rs = s.executeQuery();
+-            if (!rs.next()) {
+-                LOG.debug(" => (no result)");
+-                return null; // No such result.
+-            } else {
+-                String result = rs.getString(1); // Return the only result col.
+-                LOG.debug(" => " + result);
+-                return result;
+-            }
+-        } finally {
+-            if (null != rs) {
+-                try {
+-                    rs.close();
+-                } catch (SQLException sqlE) {
+-                    LOG.warn("Error closing resultset: " + sqlE);
+-                }
+-            }
+-
+-            if (null != s) {
+-                s.close();
+-            }
+-        }
+-    }
+-
+-    /**
+-     * Set a value for the specified version (may be null) in the root
+-     * metadata table.
+-     */
+-    private void setRootProperty(String propertyName, Integer version,
+-                                 String val) throws SQLException {
+-        LOG.debug("Setting property " + propertyName + " for version "
+-                + version + " => " + val);
+-
+-        PreparedStatement s;
+-        String curVal = getRootProperty(propertyName, version);
+-        if (null == curVal) {
+-            // INSERT the row.
+-            s = connection.prepareStatement("INSERT INTO " + getRootTableName()
+-                    + " (propval, propname, version) VALUES ( ? , ? , ? )");
+-        } else if (version == null) {
+-            // UPDATE an existing row with a null version
+-            s = connection.prepareStatement("UPDATE " + getRootTableName()
+-                    + " SET propval = ? WHERE  propname = ? AND version IS NULL");
+-        } else {
+-            // UPDATE an existing row with non-null version.
+-            s = connection.prepareStatement("UPDATE " + getRootTableName()
+-                    + " SET propval = ? WHERE  propname = ? AND version = ?");
+-        }
+-
+-        try {
+-            s.setString(1, val);
+-            s.setString(2, propertyName);
+-            if (null != version) {
+-                s.setInt(3, version);
+-            }
+-            s.executeUpdate();
+-        } finally {
+-            s.close();
+-        }
+-    }
+-
+-    /**
+-     * Create the jobs table in the V0 schema.
+-     */
+-    private void createJobTable() throws SQLException {
+-        String curTableName = DEFAULT_SESSION_TABLE_NAME;
+-        int tableNum = -1;
+-        while (true) {
+-            if (tableExists(curTableName)) {
+-                tableNum++;
+-                curTableName = DEFAULT_SESSION_TABLE_NAME + "_" + tableNum;
+-            } else {
+-                break;
+-            }
+-        }
+-
+-        // curTableName contains a table name that does not exist.
+-        // Create this table.
+-        LOG.debug("Creating job storage table: " + curTableName);
+-        Statement s = connection.createStatement();
+-        try {
+-            s.executeUpdate("CREATE TABLE " + curTableName + " ("
+-                    + "job_name VARCHAR(64) NOT NULL, "
+-                    + "propname VARCHAR(128) NOT NULL, "
+-                    + "propval VARCHAR(1024), "
+-                    + "propclass VARCHAR(32) NOT NULL, "
+-                    + "CONSTRAINT " + curTableName + "_unq UNIQUE "
+-                    + "(job_name, propname, propclass))");
+-
+-            // Then set a property in the root table pointing to it.
+-            setRootProperty(SESSION_TABLE_KEY, 0, curTableName);
+-            connection.commit();
+-        } finally {
+-            s.close();
+-        }
+-
+-        this.jobTableName = curTableName;
+-    }
+-
+-    /**
+-     * Given a root schema that exists,
+-     * initialize a version-0 key/value storage schema on top of it,
+-     * if it does not already exist.
+-     */
+-    private void initV0Schema() throws SQLException {
+-        this.jobTableName = getRootProperty(SESSION_TABLE_KEY, 0);
+-        if (null == this.jobTableName) {
+-            createJobTable();
+-        }
+-        if (!tableExists(this.jobTableName)) {
+-            LOG.debug("Could not find job table: " + jobTableName);
+-            createJobTable();
+-        }
+-    }
+-
+-    /**
+-     * INSERT or UPDATE a single (job, propname, class) to point
+-     * to the specified property value.
+-     */
+-    private void setV0Property(String jobName, String propClass,
+-                               String propName, String propVal) throws SQLException {
+-        LOG.debug("Job: " + jobName + "; Setting property "
+-                + propName + " with class " + propClass + " => " + propVal);
+-
+-        PreparedStatement s = null;
+-        try {
+-            String curValue = getV0Property(jobName, propClass, propName);
+-            if (null == curValue) {
+-                // Property is not yet set.
+-                s = connection.prepareStatement("INSERT INTO " + this.jobTableName
+-                        + " (propval, job_name, propclass, propname) "
+-                        + "VALUES (?, ?, ?, ?)");
+-            } else {
+-                // Overwrite existing property.
+-                s = connection.prepareStatement("UPDATE " + this.jobTableName
+-                        + " SET propval = ? WHERE job_name = ? AND propclass = ? "
+-                        + "AND propname = ?");
+-            }
+-
+-            s.setString(1, propVal);
+-            s.setString(2, jobName);
+-            s.setString(3, propClass);
+-            s.setString(4, propName);
+-
+-            s.executeUpdate();
+-        } finally {
+-            if (null != s) {
+-                s.close();
+-            }
+-        }
+-    }
+-
+-    /**
+-     * Return a string containing the value of a specified property,
+-     * or null if it is not set.
+-     */
+-    private String getV0Property(String jobName, String propClass,
+-                                 String propertyName) throws SQLException {
+-        LOG.debug("Job: " + jobName + "; Getting property "
+-                + propertyName + " with class " + propClass);
+-
+-        ResultSet rs = null;
+-        PreparedStatement s = connection.prepareStatement(
+-                "SELECT propval FROM " + this.jobTableName
+-                        + " WHERE job_name = ? AND propclass = ? AND propname = ?");
+-
+-        try {
+-            s.setString(1, jobName);
+-            s.setString(2, propClass);
+-            s.setString(3, propertyName);
+-            rs = s.executeQuery();
+-
+-            if (!rs.next()) {
+-                LOG.debug(" => (no result)");
+-                return null;
+-            }
+-
+-            String result = rs.getString(1);
+-            LOG.debug(" => " + result);
+-            return result;
+-        } finally {
+-            if (null != rs) {
+-                try {
+-                    rs.close();
+-                } catch (SQLException sqlE) {
+-                    LOG.warn("Error closing resultset: " + sqlE);
+-                }
+-            }
+-
+-            s.close();
+-        }
+-    }
+-
+-    /**
+-     * Get a java.util.Properties containing all propName -&gt; propVal
+-     * bindings for a given (jobName, propClass).
+-     */
+-    private Properties getV0Properties(String jobName, String propClass)
+-            throws SQLException {
+-        LOG.debug("Job: " + jobName
+-                + "; Getting properties with class " + propClass);
+-
+-        ResultSet rs = null;
+-        PreparedStatement s = connection.prepareStatement(
+-                "SELECT propname, propval FROM " + this.jobTableName
+-                        + " WHERE job_name = ? AND propclass = ?");
+-        try {
+-            s.setString(1, jobName);
+-            s.setString(2, propClass);
+-            rs = s.executeQuery();
+-
+-            Properties p = new Properties();
+-            while (rs.next()) {
+-                p.setProperty(rs.getString(1), rs.getString(2));
+-            }
+-
+-            return p;
+-        } finally {
+-            if (null != rs) {
+-                try {
+-                    rs.close();
+-                } catch (SQLException sqlE) {
+-                    LOG.warn("Error closing result set: " + sqlE);
+-                }
+-            }
+-
+-            s.close();
+-        }
+-    }
+-
+-    private void setV0Properties(String jobName, String propClass,
+-                                 Properties properties) throws SQLException {
+-        LOG.debug("Job: " + jobName
+-                + "; Setting bulk properties for class " + propClass);
+-
+-        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+-            String key = entry.getKey().toString();
+-            String val = entry.getValue().toString();
+-            setV0Property(jobName, propClass, key, val);
+-        }
+-    }
+-}
+-
+diff --git a/src/java/org/apache/sqoop/orm/ClassWriter.java b/src/java/org/apache/sqoop/orm/ClassWriter.java
+index 417717d..1c6f7f4 100644
+--- a/src/java/org/apache/sqoop/orm/ClassWriter.java
++++ b/src/java/org/apache/sqoop/orm/ClassWriter.java
+@@ -18,24 +18,6 @@
+ 
+ package org.apache.sqoop.orm;
+ 
+-import com.cloudera.sqoop.SqoopOptions;
+-import com.cloudera.sqoop.lib.BigDecimalSerializer;
+-import com.cloudera.sqoop.lib.BlobRef;
+-import com.cloudera.sqoop.lib.BooleanParser;
+-import com.cloudera.sqoop.lib.ClobRef;
+-import com.cloudera.sqoop.lib.DelimiterSet;
+-import com.cloudera.sqoop.lib.FieldFormatter;
+-import com.cloudera.sqoop.lib.JdbcWritableBridge;
+-import com.cloudera.sqoop.lib.LargeObjectLoader;
+-import com.cloudera.sqoop.lib.LobSerializer;
+-import com.cloudera.sqoop.lib.RecordParser;
+-import com.cloudera.sqoop.lib.SqoopRecord;
+-import com.cloudera.sqoop.manager.ConnManager;
+-import org.apache.commons.logging.Log;
+-import org.apache.commons.logging.LogFactory;
+-import org.apache.hadoop.io.BytesWritable;
+-import org.apache.sqoop.mapreduce.ImportJobBase;
+-
+ import java.io.File;
+ import java.io.FileOutputStream;
+ import java.io.IOException;
+@@ -48,6 +30,25 @@
+ import java.util.Properties;
+ import java.util.Set;
+ 
++import org.apache.commons.logging.Log;
++import org.apache.commons.logging.LogFactory;
++import org.apache.hadoop.io.BytesWritable;
++import org.apache.sqoop.mapreduce.ImportJobBase;
++
++import com.cloudera.sqoop.SqoopOptions;
++import com.cloudera.sqoop.manager.ConnManager;
++import com.cloudera.sqoop.lib.BigDecimalSerializer;
++import com.cloudera.sqoop.lib.BooleanParser;
++import com.cloudera.sqoop.lib.DelimiterSet;
++import com.cloudera.sqoop.lib.FieldFormatter;
++import com.cloudera.sqoop.lib.JdbcWritableBridge;
++import com.cloudera.sqoop.lib.LargeObjectLoader;
++import com.cloudera.sqoop.lib.LobSerializer;
++import com.cloudera.sqoop.lib.RecordParser;
++import com.cloudera.sqoop.lib.BlobRef;
++import com.cloudera.sqoop.lib.ClobRef;
++import com.cloudera.sqoop.lib.SqoopRecord;
++
+ /**
+  * Creates an ORM class to represent a table from a database.
+  */
+@@ -1374,12 +1375,12 @@ private void generateParseMethod(String typ, StringBuilder sb) {
+    */
+   private void parseNullVal(String javaType, String colName, StringBuilder sb) {
+     if (javaType.equals("String")) {
+-      sb.append("    if (__cur_str.equalsIgnoreCase(\""
++      sb.append("    if (__cur_str.equals(\""
+          + this.options.getInNullStringValue() + "\")) { this.");
+       sb.append(colName);
+       sb.append(" = null; } else {\n");
+     } else {
+-      sb.append("    if (__cur_str.equalsIgnoreCase(\""
++      sb.append("    if (__cur_str.equals(\""
+          + this.options.getInNullNonStringValue());
+       sb.append("\") || __cur_str.length() == 0) { this.");
+       sb.append(colName);
+diff --git a/src/java/org/apache/sqoop/orm/ClassWriter.java.orig b/src/java/org/apache/sqoop/orm/ClassWriter.java.orig
+deleted file mode 100644
+index 1c6f7f4..0000000
+--- a/src/java/org/apache/sqoop/orm/ClassWriter.java.orig
++++ /dev/null
+@@ -1,1932 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.sqoop.orm;
+-
+-import java.io.File;
+-import java.io.FileOutputStream;
+-import java.io.IOException;
+-import java.io.OutputStream;
+-import java.io.OutputStreamWriter;
+-import java.io.Writer;
+-import java.util.Date;
+-import java.util.HashSet;
+-import java.util.Map;
+-import java.util.Properties;
+-import java.util.Set;
+-
+-import org.apache.commons.logging.Log;
+-import org.apache.commons.logging.LogFactory;
+-import org.apache.hadoop.io.BytesWritable;
+-import org.apache.sqoop.mapreduce.ImportJobBase;
+-
+-import com.cloudera.sqoop.SqoopOptions;
+-import com.cloudera.sqoop.manager.ConnManager;
+-import com.cloudera.sqoop.lib.BigDecimalSerializer;
+-import com.cloudera.sqoop.lib.BooleanParser;
+-import com.cloudera.sqoop.lib.DelimiterSet;
+-import com.cloudera.sqoop.lib.FieldFormatter;
+-import com.cloudera.sqoop.lib.JdbcWritableBridge;
+-import com.cloudera.sqoop.lib.LargeObjectLoader;
+-import com.cloudera.sqoop.lib.LobSerializer;
+-import com.cloudera.sqoop.lib.RecordParser;
+-import com.cloudera.sqoop.lib.BlobRef;
+-import com.cloudera.sqoop.lib.ClobRef;
+-import com.cloudera.sqoop.lib.SqoopRecord;
+-
+-/**
+- * Creates an ORM class to represent a table from a database.
+- */
+-public class ClassWriter {
+-
+-  public static final Log LOG = LogFactory.getLog(ClassWriter.class.getName());
+-
+-  // The following are keywords and cannot be used for class, method, or field
+-  // names.
+-  public static final HashSet<String> JAVA_RESERVED_WORDS;
+-
+-  static {
+-    JAVA_RESERVED_WORDS = new HashSet<String>();
+-
+-    JAVA_RESERVED_WORDS.add("abstract");
+-    JAVA_RESERVED_WORDS.add("assert");
+-    JAVA_RESERVED_WORDS.add("boolean");
+-    JAVA_RESERVED_WORDS.add("break");
+-    JAVA_RESERVED_WORDS.add("byte");
+-    JAVA_RESERVED_WORDS.add("case");
+-    JAVA_RESERVED_WORDS.add("catch");
+-    JAVA_RESERVED_WORDS.add("char");
+-    JAVA_RESERVED_WORDS.add("class");
+-    JAVA_RESERVED_WORDS.add("const");
+-    JAVA_RESERVED_WORDS.add("continue");
+-    JAVA_RESERVED_WORDS.add("default");
+-    JAVA_RESERVED_WORDS.add("do");
+-    JAVA_RESERVED_WORDS.add("double");
+-    JAVA_RESERVED_WORDS.add("else");
+-    JAVA_RESERVED_WORDS.add("enum");
+-    JAVA_RESERVED_WORDS.add("extends");
+-    JAVA_RESERVED_WORDS.add("false");
+-    JAVA_RESERVED_WORDS.add("final");
+-    JAVA_RESERVED_WORDS.add("finally");
+-    JAVA_RESERVED_WORDS.add("float");
+-    JAVA_RESERVED_WORDS.add("for");
+-    JAVA_RESERVED_WORDS.add("goto");
+-    JAVA_RESERVED_WORDS.add("if");
+-    JAVA_RESERVED_WORDS.add("implements");
+-    JAVA_RESERVED_WORDS.add("import");
+-    JAVA_RESERVED_WORDS.add("instanceof");
+-    JAVA_RESERVED_WORDS.add("int");
+-    JAVA_RESERVED_WORDS.add("interface");
+-    JAVA_RESERVED_WORDS.add("long");
+-    JAVA_RESERVED_WORDS.add("native");
+-    JAVA_RESERVED_WORDS.add("new");
+-    JAVA_RESERVED_WORDS.add("null");
+-    JAVA_RESERVED_WORDS.add("package");
+-    JAVA_RESERVED_WORDS.add("private");
+-    JAVA_RESERVED_WORDS.add("protected");
+-    JAVA_RESERVED_WORDS.add("public");
+-    JAVA_RESERVED_WORDS.add("return");
+-    JAVA_RESERVED_WORDS.add("short");
+-    JAVA_RESERVED_WORDS.add("static");
+-    JAVA_RESERVED_WORDS.add("strictfp");
+-    JAVA_RESERVED_WORDS.add("super");
+-    JAVA_RESERVED_WORDS.add("switch");
+-    JAVA_RESERVED_WORDS.add("synchronized");
+-    JAVA_RESERVED_WORDS.add("this");
+-    JAVA_RESERVED_WORDS.add("throw");
+-    JAVA_RESERVED_WORDS.add("throws");
+-    JAVA_RESERVED_WORDS.add("transient");
+-    JAVA_RESERVED_WORDS.add("true");
+-    JAVA_RESERVED_WORDS.add("try");
+-    JAVA_RESERVED_WORDS.add("void");
+-    JAVA_RESERVED_WORDS.add("volatile");
+-    JAVA_RESERVED_WORDS.add("while");
+-
+-    // not strictly reserved words, but collides with
+-    // our imports
+-    JAVA_RESERVED_WORDS.add("Text");
+-  }
+-
+-  public static final String PROPERTY_CODEGEN_METHODS_MAXCOLS =
+-      "codegen.methods.maxcols";
+-
+-  /**
+-   * This version number is injected into all generated Java classes to denote
+-   * which version of the ClassWriter's output format was used to generate the
+-   * class.
+-   *
+-   * If the way that we generate classes changes, bump this number.
+-   * This number is retrieved by the SqoopRecord.getClassFormatVersion()
+-   * method.
+-   */
+-  public static final int CLASS_WRITER_VERSION = 3;
+-
+-  /**
+-   * Default maximum number of columns per method.
+-   */
+-  public static final int MAX_COLUMNS_PER_METHOD_DEFAULT = 500;
+-
+-  /**
+-   * This number confines the number of allowed columns in a single method.
+-   * It allows code generation to scale to thousands of columns without
+-   * running into "code too large" exceptions.
+-   */
+-  private int maxColumnsPerMethod;
+-
+-  private SqoopOptions options;
+-  private ConnManager connManager;
+-  private String tableName;
+-  private CompilationManager compileManager;
+-  private boolean bigDecimalFormatString;
+-
+-  /**
+-   * Creates a new ClassWriter to generate an ORM class for a table
+-   * or arbitrary query.
+-   * @param opts program-wide options
+-   * @param connMgr the connection manager used to describe the table.
+-   * @param table the name of the table to read. If null, query is taken
+-   * from the SqoopOptions.
+-   */
+-  public ClassWriter(final SqoopOptions opts, final ConnManager connMgr,
+-      final String table, final CompilationManager compMgr) {
+-    this.options = opts;
+-    this.connManager = connMgr;
+-    this.tableName = table;
+-    this.compileManager = compMgr;
+-    this.bigDecimalFormatString = this.options.getConf().getBoolean(
+-        ImportJobBase.PROPERTY_BIGDECIMAL_FORMAT,
+-        ImportJobBase.PROPERTY_BIGDECIMAL_FORMAT_DEFAULT);
+-    this.maxColumnsPerMethod = this.options.getConf().getInt(
+-        PROPERTY_CODEGEN_METHODS_MAXCOLS,
+-        MAX_COLUMNS_PER_METHOD_DEFAULT);
+-  }
+-
+-  /**
+-   * Given some character that can't be in an identifier,
+-   * try to map it to a string that can.
+-   *
+-   * @param c a character that can't be in a Java identifier
+-   * @return a string of characters that can, or null if there's
+-   * no good translation.
+-   */
+-  public static String getIdentifierStrForChar(char c) {
+-    if (Character.isJavaIdentifierPart(c)) {
+-      return "" + c;
+-    } else if (Character.isWhitespace(c)) {
+-      // Eliminate whitespace.
+-      return null;
+-    } else {
+-      // All other characters map to underscore.
+-      return "_";
+-    }
+-  }
+-
+-  /**
+-   * @param word a word to test.
+-   * @return true if 'word' is reserved the in Java language.
+-   */
+-  private static boolean isReservedWord(String word) {
+-    return JAVA_RESERVED_WORDS.contains(word);
+-  }
+-
+-  /**
+-   * Coerce a candidate name for an identifier into one which is a valid
+-   * Java or Avro identifier.
+-   *
+-   * Ensures that the returned identifier matches [A-Za-z_][A-Za-z0-9_]*
+-   * and is not a reserved word.
+-   *
+-   * @param candidate A string we want to use as an identifier
+-   * @return A string naming an identifier which compiles and is
+-   *   similar to the candidate.
+-   */
+-  public static String toIdentifier(String candidate) {
+-    StringBuilder sb = new StringBuilder();
+-    boolean first = true;
+-    for (char c : candidate.toCharArray()) {
+-      if (Character.isJavaIdentifierStart(c) && first) {
+-        // Ok for this to be the first character of the identifier.
+-        sb.append(c);
+-        first = false;
+-      } else if (Character.isJavaIdentifierPart(c) && !first) {
+-        // Ok for this character to be in the output identifier.
+-        sb.append(c);
+-      } else {
+-        // We have a character in the original that can't be
+-        // part of this identifier we're building.
+-        // If it's just not allowed to be the first char, add a leading '_'.
+-        // If we have a reasonable translation (e.g., '-' -> '_'), do that.
+-        // Otherwise, drop it.
+-        if (first && Character.isJavaIdentifierPart(c)
+-            && !Character.isJavaIdentifierStart(c)) {
+-          sb.append("_");
+-          sb.append(c);
+-          first = false;
+-        } else {
+-          // Try to map this to a different character or string.
+-          // If we can't just give up.
+-          String translated = getIdentifierStrForChar(c);
+-          if (null != translated) {
+-            sb.append(translated);
+-            first = false;
+-          }
+-        }
+-      }
+-    }
+-    return sb.toString();
+-  }
+-
+-  /**
+-   * Coerce a candidate name for an identifier into one which will
+-   * definitely compile.
+-   *
+-   * Ensures that the returned identifier matches [A-Za-z_][A-Za-z0-9_]*
+-   * and is not a reserved word.
+-   *
+-   * @param candidate A string we want to use as an identifier
+-   * @return A string naming an identifier which compiles and is
+-   *   similar to the candidate.
+-   */
+-  public static String toJavaIdentifier(String candidate) {
+-    String output = toIdentifier(candidate);
+-    if (isReservedWord(output)) {
+-      // e.g., 'class' -> '_class';
+-      return "_" + output;
+-
+-    /*
+-     * We're using candidate.startsWith instead of output.startsWith on purpose
+-     * to preserve backward compatibility as much as possible. For example
+-     * column "9isLegalInSql" was translated into "_9isLegalInSql" in original
+-     * code and will translate to same "_9isLegalInSql" now. However it would
+-     * be translated to "__9isLegalInSql" (notice that there are two "_" at the
+-     * begging) if we would use output.startsWith instead.
+-     */
+-    } else if (candidate.startsWith("_")) {
+-      return "_" + output;
+-    }
+-
+-    return output;
+-  }
+-
+-  private String toJavaType(String columnName, int sqlType) {
+-    Properties mapping = options.getMapColumnJava();
+-
+-    if (mapping.containsKey(columnName)) {
+-      String type = mapping.getProperty(columnName);
+-      if (LOG.isDebugEnabled()) {
+-        LOG.info("Overriding type of column " + columnName + " to " + type);
+-      }
+-      return type;
+-    }
+-
+-    return connManager.toJavaType(tableName, columnName, sqlType);
+-  }
+-
+-  /**
+-   * @param javaType
+-   * @return the name of the method of JdbcWritableBridge to read an entry
+-   * with a given java type.
+-   */
+-  private String dbGetterForType(String javaType) {
+-    // All Class-based types (e.g., java.math.BigDecimal) are handled with
+-    // "readBar" where some.package.foo.Bar is the canonical class name.  Turn
+-    // the javaType string into the getter type string.
+-
+-    String [] parts = javaType.split("\\.");
+-    if (parts.length == 0) {
+-      LOG.error("No ResultSet method for Java type " + javaType);
+-      return null;
+-    }
+-
+-    String lastPart = parts[parts.length - 1];
+-    try {
+-      String getter = "read" + Character.toUpperCase(lastPart.charAt(0))
+-          + lastPart.substring(1);
+-      return getter;
+-    } catch (StringIndexOutOfBoundsException oob) {
+-      // lastPart.*() doesn't work on empty strings.
+-      LOG.error("Could not infer JdbcWritableBridge getter for Java type "
+-          + javaType);
+-      return null;
+-    }
+-  }
+-
+-  /**
+-   * @param javaType
+-   * @return the name of the method of JdbcWritableBridge to write an entry
+-   * with a given java type.
+-   */
+-  private String dbSetterForType(String javaType) {
+-    // TODO(aaron): Lots of unit tests needed here.
+-    // See dbGetterForType() for the logic used here; it's basically the same.
+-
+-    String [] parts = javaType.split("\\.");
+-    if (parts.length == 0) {
+-      LOG.error("No PreparedStatement Set method for Java type " + javaType);
+-      return null;
+-    }
+-
+-    String lastPart = parts[parts.length - 1];
+-    try {
+-      String setter = "write" + Character.toUpperCase(lastPart.charAt(0))
+-          + lastPart.substring(1);
+-      return setter;
+-    } catch (StringIndexOutOfBoundsException oob) {
+-      // lastPart.*() doesn't work on empty strings.
+-      LOG.error("Could not infer PreparedStatement setter for Java type "
+-          + javaType);
+-      return null;
+-    }
+-  }
+-
+-  private String stringifierForType(String javaType, String colName) {
+-    if (javaType.equals("String")) {
+-      // Check if it is null, and write the null representation in such case
+-      String r = colName  + "==null?\"" + this.options.getNullStringValue()
+-          + "\":" + colName;
+-      return r;
+-    } else if (javaType.equals("java.math.BigDecimal")
+-        && this.bigDecimalFormatString) {
+-      // Use toPlainString method for BigDecimals if option is set
+-      String r = colName  + "==null?\"" + this.options.getNullNonStringValue()
+-          + "\":" + colName + ".toPlainString()";
+-      return r;
+-    } else {
+-      // This is an object type -- just call its toString() in a null-safe way.
+-      // Also check if it is null, and instead write the null representation
+-      // in such case
+-      String r = colName  + "==null?\"" + this.options.getNullNonStringValue()
+-          + "\":" + "\"\" + " + colName;
+-      return r;
+-    }
+-  }
+-
+-  /**
+-   * @param javaType the type to read
+-   * @param inputObj the name of the DataInput to read from
+-   * @param colName the column name to read
+-   * @return the line of code involving a DataInput object to read an entry
+-   * with a given java type.
+-   */
+-  private String rpcGetterForType(String javaType, String inputObj,
+-      String colName) {
+-    if (javaType.equals("Integer")) {
+-      return "    this." + colName + " = Integer.valueOf(" + inputObj
+-          + ".readInt());\n";
+-    } else if (javaType.equals("Long")) {
+-      return "    this." + colName + " = Long.valueOf(" + inputObj
+-          + ".readLong());\n";
+-    } else if (javaType.equals("Float")) {
+-      return "    this." + colName + " = Float.valueOf(" + inputObj
+-          + ".readFloat());\n";
+-    } else if (javaType.equals("Double")) {
+-      return "    this." + colName + " = Double.valueOf(" + inputObj
+-          + ".readDouble());\n";
+-    } else if (javaType.equals("Boolean")) {
+-      return "    this." + colName + " = Boolean.valueOf(" + inputObj
+-          + ".readBoolean());\n";
+-    } else if (javaType.equals("String")) {
+-      return "    this." + colName + " = Text.readString(" + inputObj + ");\n";
+-    } else if (javaType.equals("java.sql.Date")) {
+-      return "    this." + colName + " = new Date(" + inputObj
+-          + ".readLong());\n";
+-    } else if (javaType.equals("java.sql.Time")) {
+-      return "    this." + colName + " = new Time(" + inputObj
+-          + ".readLong());\n";
+-    } else if (javaType.equals("java.sql.Timestamp")) {
+-      return "    this." + colName + " = new Timestamp(" + inputObj
+-          + ".readLong());\n" + "    this." + colName + ".setNanos("
+-          + inputObj + ".readInt());\n";
+-    } else if (javaType.equals("java.math.BigDecimal")) {
+-      return "    this." + colName + " = "
+-          + BigDecimalSerializer.class.getCanonicalName()
+-          + ".readFields(" + inputObj + ");\n";
+-    } else if (javaType.equals(ClobRef.class.getName())) {
+-      return "    this." + colName + " = "
+-          + LobSerializer.class.getCanonicalName()
+-          + ".readClobFields(" + inputObj + ");\n";
+-    } else if (javaType.equals(BlobRef.class.getName())) {
+-      return "    this." + colName + " = "
+-          + LobSerializer.class.getCanonicalName()
+-          + ".readBlobFields(" + inputObj + ");\n";
+-    } else if (javaType.equals(BytesWritable.class.getName())) {
+-      return "    this." + colName + " = new BytesWritable();\n"
+-          + "    this." + colName + ".readFields(" + inputObj + ");\n";
+-    } else {
+-      LOG.error("No ResultSet method for Java type " + javaType);
+-      return null;
+-    }
+-  }
+-
+-  /**
+-   * Deserialize a possibly-null value from the DataInput stream.
+-   * @param javaType name of the type to deserialize if it's not null.
+-   * @param inputObj name of the DataInput to read from
+-   * @param colName the column name to read.
+-   * @return
+-   */
+-  private String rpcGetterForMaybeNull(String javaType, String inputObj,
+-      String colName) {
+-    return "    if (" + inputObj + ".readBoolean()) { \n"
+-        + "        this." + colName + " = null;\n"
+-        + "    } else {\n"
+-        + rpcGetterForType(javaType, inputObj, colName)
+-        + "    }\n";
+-  }
+-
+-  /**
+-   * @param javaType the type to write
+-   * @param outputObj the name of the DataOutput to write to
+-   * @param colName the column name to write
+-   * @return the line of code involving a DataOutput object to write an entry
+-   * with a given java type.
+-   */
+-  private String rpcSetterForType(String javaType, String outputObj,
+-      String colName) {
+-    if (javaType.equals("Integer")) {
+-      return "    " + outputObj + ".writeInt(this." + colName + ");\n";
+-    } else if (javaType.equals("Long")) {
+-      return "    " + outputObj + ".writeLong(this." + colName + ");\n";
+-    } else if (javaType.equals("Boolean")) {
+-      return "    " + outputObj + ".writeBoolean(this." + colName + ");\n";
+-    } else if (javaType.equals("Float")) {
+-      return "    " + outputObj + ".writeFloat(this." + colName + ");\n";
+-    } else if (javaType.equals("Double")) {
+-      return "    " + outputObj + ".writeDouble(this." + colName + ");\n";
+-    } else if (javaType.equals("String")) {
+-      return "    Text.writeString(" + outputObj + ", " + colName + ");\n";
+-    } else if (javaType.equals("java.sql.Date")) {
+-      return "    " + outputObj + ".writeLong(this." + colName
+-          + ".getTime());\n";
+-    } else if (javaType.equals("java.sql.Time")) {
+-      return "    " + outputObj + ".writeLong(this." + colName
+-          + ".getTime());\n";
+-    } else if (javaType.equals("java.sql.Timestamp")) {
+-      return "    " + outputObj + ".writeLong(this." + colName
+-          + ".getTime());\n" + "    " + outputObj + ".writeInt(this." + colName
+-          + ".getNanos());\n";
+-    } else if (javaType.equals(BytesWritable.class.getName())) {
+-      return "    this." + colName + ".write(" + outputObj + ");\n";
+-    } else if (javaType.equals("java.math.BigDecimal")) {
+-      return "    " + BigDecimalSerializer.class.getCanonicalName()
+-          + ".write(this." + colName + ", " + outputObj + ");\n";
+-    } else if (javaType.equals(ClobRef.class.getName())) {
+-      return "    " + LobSerializer.class.getCanonicalName()
+-          + ".writeClob(this." + colName + ", " + outputObj + ");\n";
+-    } else if (javaType.equals(BlobRef.class.getName())) {
+-      return "    " + LobSerializer.class.getCanonicalName()
+-          + ".writeBlob(this." + colName + ", " + outputObj + ");\n";
+-    } else {
+-      throw new IllegalArgumentException(
+-          "No ResultSet method for Java type " + javaType);
+-    }
+-  }
+-
+-  /**
+-   * Serialize a possibly-null value to the DataOutput stream. First a boolean
+-   * isNull is written, followed by the contents itself (if not null).
+-   * @param javaType name of the type to deserialize if it's not null.
+-   * @param outputObj name of the DataInput to read from
+-   * @param colName the column name to read.
+-   * @return
+-   */
+-  private String rpcSetterForMaybeNull(String javaType, String outputObj,
+-      String colName) {
+-    return "    if (null == this." + colName + ") { \n"
+-        + "        " + outputObj + ".writeBoolean(true);\n"
+-        + "    } else {\n"
+-        + "        " + outputObj + ".writeBoolean(false);\n"
+-        + rpcSetterForType(javaType, outputObj, colName)
+-        + "    }\n";
+-  }
+-
+-  /**
+-   * Get the number of methods that should be generated for a particular column
+-   * set.
+-   * @param colNames
+-   * @param size
+-   * @return
+-   */
+-  private int getNumberOfMethods(String[] colNames, int size) {
+-    int extra = 0;
+-    if (colNames.length % size != 0) {
+-      extra = 1;
+-    }
+-    return colNames.length / size + extra;
+-  }
+-
+-  /**
+-   * Get the top boundary when iterating through columns on a
+-   * per method basis.
+-   * @param colNames
+-   * @param methodNumber
+-   * @param size
+-   * @return
+-   */
+-  private int topBoundary(String[] colNames, int methodNumber, int size) {
+-    return (colNames.length > (methodNumber + 1) * size)
+-            ? (methodNumber + 1) * size : colNames.length;
+-  }
+-
+-  /**
+-   * Generate a member field, getter, setter and with method for each column.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table
+-   * @param className - name of the generated class
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateFields(Map<String, Integer> columnTypes,
+-      String [] colNames, String className, StringBuilder sb) {
+-
+-    for (String col : colNames) {
+-      int sqlType = columnTypes.get(col);
+-      String javaType = toJavaType(col, sqlType);
+-      if (null == javaType) {
+-        LOG.error("Cannot resolve SQL type " + sqlType);
+-        continue;
+-      }
+-
+-      sb.append("  private " + javaType + " " + col + ";\n");
+-      sb.append("  public " + javaType + " get_" + col + "() {\n");
+-      sb.append("    return " + col + ";\n");
+-      sb.append("  }\n");
+-      sb.append("  public void set_" + col + "(" + javaType + " " + col
+-          + ") {\n");
+-      sb.append("    this." + col + " = " + col + ";\n");
+-      sb.append("  }\n");
+-      sb.append("  public " + className + " with_" + col + "(" + javaType + " "
+-          + col + ") {\n");
+-      sb.append("    this." + col + " = " + col + ";\n");
+-      sb.append("    return this;\n");
+-      sb.append("  }\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate an equals method that compares the fields for each column.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table
+-   * @param className - name of the generated class
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateEquals(Map<String, Integer> columnTypes,
+-      String [] colNames, String className, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    sb.append("  public boolean equals(Object o) {\n");
+-    if (numberOfMethods > 1) {
+-      sb.append("    boolean equal = true;\n");
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    equal = equal && this.equals" + i + "(o);\n");
+-      }
+-      sb.append("    return equal;\n");
+-    } else {
+-      myGenerateEquals(columnTypes, colNames, className, sb, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-    sb.append("  }\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateEquals(columnTypes, colNames, className, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate an equals method that compares the fields for each column.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table
+-   * @param className - name of the generated class
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateEquals(Map<String, Integer> columnTypes,
+-                                String[] colNames, String className,
+-                                StringBuilder sb, int methodNumber, int size,
+-                                boolean wrapInMethod) {
+-
+-    if (wrapInMethod) {
+-      sb.append("  public boolean equals" + methodNumber + "(Object o) {\n");
+-    }
+-
+-    sb.append("    if (this == o) {\n");
+-    sb.append("      return true;\n");
+-    sb.append("    }\n");
+-    sb.append("    if (!(o instanceof " + className + ")) {\n");
+-    sb.append("      return false;\n");
+-    sb.append("    }\n");
+-    sb.append("    " + className + " that = (" + className + ") o;\n");
+-    sb.append("    boolean equal = true;\n");
+-    for (int i = size * methodNumber;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String col = colNames[i];
+-      int sqlType = columnTypes.get(col);
+-      String javaType = toJavaType(col, sqlType);
+-      if (null == javaType) {
+-        LOG.error("Cannot resolve SQL type " + sqlType);
+-        continue;
+-      }
+-      sb.append("    equal = equal && (this." + col + " == null ? that." + col
+-          + " == null : this." + col + ".equals(that." + col + "));\n");
+-    }
+-    sb.append("    return equal;\n");
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate the readFields() method used by the database.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateDbRead(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    sb.append("  public void readFields(ResultSet __dbResults) ");
+-    sb.append("throws SQLException {\n");
+-    // Save ResultSet object cursor for use in LargeObjectLoader
+-    // if necessary.
+-    sb.append("    this.__cur_result_set = __dbResults;\n");
+-    if (numberOfMethods > 1) {
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    this.readFields" + i + "(__dbResults);\n");
+-      }
+-    } else {
+-      myGenerateDbRead(columnTypes, colNames, sb, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-    sb.append("  }\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateDbRead(columnTypes, colNames, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate the readFields() method used by the database.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateDbRead(Map<String, Integer> columnTypes,
+-                                String[] colNames, StringBuilder sb,
+-                                int methodNumber, int size,
+-                                boolean wrapInMethod) {
+-
+-    if (wrapInMethod) {
+-      sb.append("  public void readFields" + methodNumber
+-              + "(ResultSet __dbResults) ");
+-      sb.append("throws SQLException {\n");
+-    }
+-
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String col = colNames[i];
+-
+-      int sqlType = columnTypes.get(col);
+-      String javaType = toJavaType(col, sqlType);
+-      if (null == javaType) {
+-        LOG.error("No Java type for SQL type " + sqlType
+-            + " for column " + col);
+-        continue;
+-      }
+-
+-      String getterMethod = dbGetterForType(javaType);
+-      if (null == getterMethod) {
+-        LOG.error("No db getter method for Java type " + javaType);
+-        continue;
+-      }
+-
+-      sb.append("    this." + col + " = JdbcWritableBridge." +  getterMethod
+-          + "(" + (i + 1) + ", __dbResults);\n");
+-    }
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate the loadLargeObjects() method called by the mapper to load
+-   * delayed objects (that require the Context from the mapper).
+-   */
+-  private void generateLoadLargeObjects(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    // This method relies on the __cur_result_set field being set by
+-    // readFields() method generated by generateDbRead().
+-
+-    sb.append("  public void loadLargeObjects(LargeObjectLoader __loader)\n");
+-    sb.append("      throws SQLException, IOException, ");
+-    sb.append("InterruptedException {\n");
+-
+-    if (numberOfMethods > 1) {
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    this.loadLargeObjects" + i + "(__loader);\n");
+-      }
+-    } else {
+-      myGenerateLoadLargeObjects(columnTypes, colNames, sb, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-
+-    sb.append("  }\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateLoadLargeObjects(columnTypes, colNames, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate the loadLargeObjects() method called by the mapper to load
+-   * delayed objects (that require the Context from the mapper).
+-   */
+-  private void myGenerateLoadLargeObjects(Map<String, Integer> columnTypes,
+-                                          String[] colNames, StringBuilder sb,
+-                                          int methodNumber, int size,
+-                                          boolean wrapInMethod) {
+-
+-    // This method relies on the __cur_result_set field being set by
+-    // readFields() method generated by generateDbRead().
+-
+-    if (wrapInMethod) {
+-      sb.append("  public void loadLargeObjects" + methodNumber
+-              + "(LargeObjectLoader __loader)\n");
+-      sb.append("      throws SQLException, IOException, ");
+-      sb.append("InterruptedException {\n");
+-    }
+-
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String col = colNames[i];
+-
+-      int sqlType = columnTypes.get(col);
+-      String javaType = toJavaType(col, sqlType);
+-      if (null == javaType) {
+-        LOG.error("No Java type for SQL type " + sqlType
+-            + " for column " + col);
+-        continue;
+-      }
+-
+-      String getterMethod = dbGetterForType(javaType);
+-      if ("readClobRef".equals(getterMethod)
+-          || "readBlobRef".equals(getterMethod)) {
+-        // This field is a blob/clob field with delayed loading.  Call the
+-        // appropriate LargeObjectLoader method (which has the same name as a
+-        // JdbcWritableBridge method).
+-        sb.append("    this." + col + " = __loader." + getterMethod
+-            + "(" + (i + 1) + ", this.__cur_result_set);\n");
+-      }
+-    }
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate the write() method used by the database.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateDbWrite(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    sb.append("  public void write(PreparedStatement __dbStmt) "
+-        + "throws SQLException {\n");
+-    sb.append("    write(__dbStmt, 0);\n");
+-    sb.append("  }\n\n");
+-
+-    sb.append("  public int write(PreparedStatement __dbStmt, int __off) "
+-        + "throws SQLException {\n");
+-
+-    if (numberOfMethods > 1) {
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    write" + i + "(__dbStmt, __off);\n");
+-      }
+-    } else {
+-      myGenerateDbWrite(columnTypes, colNames, sb, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-
+-    sb.append("    return " + colNames.length + ";\n");
+-    sb.append("  }\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateDbWrite(columnTypes, colNames, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate the write() method used by the database.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateDbWrite(Map<String, Integer> columnTypes,
+-                                 String[] colNames, StringBuilder sb,
+-                                 int methodNumber, int size,
+-                                 boolean wrapInMethod) {
+-
+-    if (wrapInMethod) {
+-      sb.append("  public void write" + methodNumber
+-              + "(PreparedStatement __dbStmt, int __off) "
+-              + "throws SQLException {\n");
+-    }
+-
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String col = colNames[i];
+-
+-      int sqlType = columnTypes.get(col);
+-      String javaType = toJavaType(col, sqlType);
+-      if (null == javaType) {
+-        LOG.error("No Java type for SQL type " + sqlType
+-            + " for column " + col);
+-        continue;
+-      }
+-
+-      String setterMethod = dbSetterForType(javaType);
+-      if (null == setterMethod) {
+-        LOG.error("No db setter method for Java type " + javaType);
+-        continue;
+-      }
+-
+-      sb.append("    JdbcWritableBridge." + setterMethod + "(" + col + ", "
+-          + (i + 1) + " + __off, " + sqlType + ", __dbStmt);\n");
+-    }
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate the readFields() method used by the Hadoop RPC system.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateHadoopRead(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    sb.append("  public void readFields(DataInput __dataIn) "
+-        + "throws IOException {\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      sb.append("this.readFields" + i + "(__dataIn);");
+-    }
+-
+-    sb.append("  }\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateHadoopRead(columnTypes, colNames, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate the readFields() method used by the Hadoop RPC system.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateHadoopRead(Map<String, Integer> columnTypes,
+-                                    String[] colNames, StringBuilder sb,
+-                                    int methodNumber, int size,
+-                                    boolean wrapInMethod) {
+-    if (wrapInMethod) {
+-      sb.append("  public void readFields" + methodNumber
+-              + "(DataInput __dataIn) " + "throws IOException {\n");
+-    }
+-
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String col = colNames[i];
+-      int sqlType = columnTypes.get(col);
+-      String javaType = toJavaType(col, sqlType);
+-      if (null == javaType) {
+-        LOG.error("No Java type for SQL type " + sqlType
+-            + " for column " + col);
+-        continue;
+-      }
+-
+-      String getterMethod = rpcGetterForMaybeNull(javaType, "__dataIn", col);
+-      if (null == getterMethod) {
+-        LOG.error("No RPC getter method for Java type " + javaType);
+-        continue;
+-      }
+-
+-      sb.append(getterMethod);
+-    }
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate the clone() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateCloneMethod(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    TableClassName tableNameInfo = new TableClassName(options);
+-    String className = tableNameInfo.getShortClassForTable(tableName);
+-
+-    sb.append("  public Object clone() throws CloneNotSupportedException {\n");
+-    sb.append("    " + className + " o = (" + className + ") super.clone();\n");
+-
+-    if (numberOfMethods > 1) {
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    this.clone" + i + "(o);");
+-      }
+-    } else {
+-      myGenerateCloneMethod(columnTypes, colNames, sb, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-
+-    sb.append("    return o;\n");
+-    sb.append("  }\n\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateCloneMethod(columnTypes, colNames, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate the clone() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateCloneMethod(Map<String, Integer> columnTypes,
+-                                     String[] colNames, StringBuilder sb,
+-                                     int methodNumber, int size,
+-                                     boolean wrapInMethod) {
+-    TableClassName tableNameInfo = new TableClassName(options);
+-    String className = tableNameInfo.getShortClassForTable(tableName);
+-
+-    if (wrapInMethod) {
+-      sb.append("  public void clone" + methodNumber
+-              + "(" + className + " o) throws CloneNotSupportedException {\n");
+-    }
+-
+-    // For each field that is mutable, we need to perform the deep copy.
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String colName = colNames[i];
+-      int sqlType = columnTypes.get(colName);
+-      String javaType = toJavaType(colName, sqlType);
+-      if (null == javaType) {
+-        continue;
+-      } else if (javaType.equals("java.sql.Date")
+-          || javaType.equals("java.sql.Time")
+-          || javaType.equals("java.sql.Timestamp")
+-          || javaType.equals(ClobRef.class.getName())
+-          || javaType.equals(BlobRef.class.getName())) {
+-        sb.append("    o." + colName + " = (o." + colName + " != null) ? ("
+-            + javaType + ") o." + colName + ".clone() : null;\n");
+-      } else if (javaType.equals(BytesWritable.class.getName())) {
+-        sb.append("    o." + colName + " = (o." + colName + " != null) ? "
+-            + "new BytesWritable(Arrays.copyOf(" + colName + ".getBytes(), "
+-            + colName + ".getLength())) : null;\n");
+-      }
+-    }
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate the setField() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateSetField(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    sb.append("  public void setField(String __fieldName, Object __fieldVal) "
+-        + "{\n");
+-    if (numberOfMethods > 1) {
+-      boolean first = true;
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        if (!first) {
+-          sb.append("    else");
+-        }
+-        sb.append("    if (this.setField" + i
+-                + "(__fieldName, __fieldVal)) {\n");
+-        sb.append("      return;\n");
+-        sb.append("    }\n");
+-        first = false;
+-      }
+-    } else {
+-      boolean first = true;
+-      for (String colName : colNames) {
+-        int sqlType = columnTypes.get(colName);
+-        String javaType = toJavaType(colName, sqlType);
+-        if (null == javaType) {
+-          continue;
+-        } else {
+-          if (!first) {
+-            sb.append("    else");
+-          }
+-
+-          sb.append("    if (\"" + colName + "\".equals(__fieldName)) {\n");
+-          sb.append("      this." + colName + " = (" + javaType
+-              + ") __fieldVal;\n");
+-          sb.append("    }\n");
+-          first = false;
+-        }
+-      }
+-    }
+-    sb.append("    else {\n");
+-    sb.append("      throw new RuntimeException(");
+-    sb.append("\"No such field: \" + __fieldName);\n");
+-    sb.append("    }\n");
+-    sb.append("  }\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateSetField(columnTypes, colNames, sb, i, maxColumnsPerMethod);
+-    }
+-  }
+-
+-  /**
+-   * Generate the setField() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   */
+-  private void myGenerateSetField(Map<String, Integer> columnTypes,
+-                                  String[] colNames, StringBuilder sb,
+-                                  int methodNumber, int size) {
+-    sb.append("  public boolean setField" + methodNumber
+-            + "(String __fieldName, Object __fieldVal) {\n");
+-
+-    boolean first = true;
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String colName = colNames[i];
+-      int sqlType = columnTypes.get(colName);
+-      String javaType = toJavaType(colName, sqlType);
+-      if (null == javaType) {
+-        continue;
+-      } else {
+-        if (!first) {
+-          sb.append("    else");
+-        }
+-
+-        sb.append("    if (\"" + colName + "\".equals(__fieldName)) {\n");
+-        sb.append("      this." + colName + " = (" + javaType
+-            + ") __fieldVal;\n");
+-        sb.append("      return true;\n");
+-        sb.append("    }\n");
+-        first = false;
+-      }
+-    }
+-    sb.append("    else {\n");
+-    sb.append("      return false;");
+-    sb.append("    }\n");
+-    sb.append("  }\n");
+-  }
+-
+-  /**
+-   * Generate the getFieldMap() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateGetFieldMap(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    sb.append("  public Map<String, Object> getFieldMap() {\n");
+-    sb.append("    Map<String, Object> __sqoop$field_map = "
+-        + "new TreeMap<String, Object>();\n");
+-    if (numberOfMethods > 1) {
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    this.getFieldMap" + i + "(__sqoop$field_map);\n");
+-      }
+-    } else {
+-      myGenerateGetFieldMap(columnTypes, colNames, sb, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-    sb.append("    return __sqoop$field_map;\n");
+-    sb.append("  }\n\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateGetFieldMap(columnTypes, colNames, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate the getFieldMap() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateGetFieldMap(Map<String, Integer> columnTypes,
+-                                     String[] colNames, StringBuilder sb,
+-                                     int methodNumber, int size,
+-                                     boolean wrapInMethod) {
+-    if (wrapInMethod) {
+-      sb.append("  public void getFieldMap" + methodNumber
+-              + "(Map<String, Object> __sqoop$field_map) {\n");
+-    }
+-
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String colName = colNames[i];
+-      sb.append("    __sqoop$field_map.put(\"" + colName + "\", this."
+-          + colName + ");\n");
+-    }
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate the toString() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateToString(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    // Save the delimiters to the class.
+-    sb.append("  private static final DelimiterSet __outputDelimiters = ");
+-    sb.append(options.getOutputDelimiters().formatConstructor() + ";\n");
+-
+-    // The default toString() method itself follows. This just calls
+-    // the delimiter-specific toString() with the default delimiters.
+-    // Also appends an end-of-record delimiter to the line.
+-    sb.append("  public String toString() {\n");
+-    sb.append("    return toString(__outputDelimiters, true);\n");
+-    sb.append("  }\n");
+-
+-    // This toString() variant, though, accepts delimiters as arguments.
+-    sb.append("  public String toString(DelimiterSet delimiters) {\n");
+-    sb.append("    return toString(delimiters, true);\n");
+-    sb.append("  }\n");
+-
+-    // This variant allows the user to specify whether or not an end-of-record
+-    // delimiter should be appended.
+-    sb.append("  public String toString(boolean useRecordDelim) {\n");
+-    sb.append("    return toString(__outputDelimiters, useRecordDelim);\n");
+-    sb.append("  }\n");
+-
+-
+-    // This toString() variant allows the user to specify delimiters, as well
+-    // as whether or not the end-of-record delimiter should be added to the
+-    // string.  Use 'false' to do reasonable things with TextOutputFormat,
+-    // which appends its own newline.
+-    sb.append("  public String toString(DelimiterSet delimiters, ");
+-    sb.append("boolean useRecordDelim) {\n");
+-    sb.append("    StringBuilder __sb = new StringBuilder();\n");
+-    sb.append("    char fieldDelim = delimiters.getFieldsTerminatedBy();\n");
+-
+-    if (numberOfMethods > 1) {
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    this.toString" + i
+-                + "(delimiters, __sb, fieldDelim);\n");
+-      }
+-    } else {
+-      myGenerateToString(columnTypes, colNames, sb, true, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-
+-    sb.append("    if (useRecordDelim) {\n");
+-    sb.append("      __sb.append(delimiters.getLinesTerminatedBy());\n");
+-    sb.append("    }\n");
+-    sb.append("    return __sb.toString();\n");
+-    sb.append("  }\n");
+-
+-    boolean first = true;
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateToString(columnTypes, colNames, sb, first, i,
+-              maxColumnsPerMethod, true);
+-      first = false;
+-    }
+-  }
+-
+-  /**
+-   * Generate the toString() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateToString(Map<String, Integer> columnTypes,
+-                                  String[] colNames, StringBuilder sb,
+-                                  boolean first, int methodNumber, int size,
+-                                  boolean wrapInMethod) {
+-    // This toString() variant allows the user to specify delimiters, as well
+-    // as whether or not the end-of-record delimiter should be added to the
+-    // string.  Use 'false' to do reasonable things with TextOutputFormat,
+-    // which appends its own newline.
+-    if (wrapInMethod) {
+-      sb.append("  public void toString" + methodNumber
+-              + "(DelimiterSet delimiters, ");
+-      sb.append("StringBuilder __sb, char fieldDelim) {\n");
+-    }
+-
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String col = colNames[i];
+-      int sqlType = columnTypes.get(col);
+-      String javaType = toJavaType(col, sqlType);
+-      if (null == javaType) {
+-        LOG.error("No Java type for SQL type " + sqlType
+-            + " for column " + col);
+-        continue;
+-      }
+-
+-      if (!first) {
+-        // print inter-field tokens.
+-        sb.append("    __sb.append(fieldDelim);\n");
+-      }
+-
+-      first = false;
+-
+-      String stringExpr = stringifierForType(javaType, col);
+-      if (null == stringExpr) {
+-        LOG.error("No toString method for Java type " + javaType);
+-        continue;
+-      }
+-
+-      if (javaType.equals("String") && options.doHiveDropDelims()) {
+-        sb.append("    // special case for strings hive, dropping"
+-            + "delimiters \\n,\\r,\\01 from strings\n");
+-        sb.append("    __sb.append(FieldFormatter.hiveStringDropDelims("
+-            + stringExpr + ", delimiters));\n");
+-      } else if (javaType.equals("String")
+-          && options.getHiveDelimsReplacement() != null) {
+-        sb.append("    // special case for strings hive, replacing "
+-            + "delimiters \\n,\\r,\\01 with '"
+-            + options.getHiveDelimsReplacement() + "' from strings\n");
+-        sb.append("    __sb.append(FieldFormatter.hiveStringReplaceDelims("
+-            + stringExpr + ", \"" + options.getHiveDelimsReplacement() + "\", "
+-            + "delimiters));\n");
+-      } else {
+-        sb.append("    __sb.append(FieldFormatter.escapeAndEnclose("
+-            + stringExpr + ", delimiters));\n");
+-      }
+-    }
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n");
+-    }
+-  }
+-
+-  /**
+-   * Helper method for generateParser(). Writes out the parse() method for one
+-   * particular type we support as an input string-ish type.
+-   */
+-  private void generateParseMethod(String typ, StringBuilder sb) {
+-    sb.append("  public void parse(" + typ + " __record) "
+-        + "throws RecordParser.ParseError {\n");
+-    sb.append("    if (null == this.__parser) {\n");
+-    sb.append("      this.__parser = new RecordParser(__inputDelimiters);\n");
+-    sb.append("    }\n");
+-    sb.append("    List<String> __fields = "
+-        + "this.__parser.parseRecord(__record);\n");
+-    sb.append("    __loadFromFields(__fields);\n");
+-    sb.append("  }\n\n");
+-  }
+-
+-  /**
+-   * Helper method for parseColumn(). Interpret the string null representation
+-   * for a particular column.
+-   */
+-  private void parseNullVal(String javaType, String colName, StringBuilder sb) {
+-    if (javaType.equals("String")) {
+-      sb.append("    if (__cur_str.equals(\""
+-         + this.options.getInNullStringValue() + "\")) { this.");
+-      sb.append(colName);
+-      sb.append(" = null; } else {\n");
+-    } else {
+-      sb.append("    if (__cur_str.equals(\""
+-         + this.options.getInNullNonStringValue());
+-      sb.append("\") || __cur_str.length() == 0) { this.");
+-      sb.append(colName);
+-      sb.append(" = null; } else {\n");
+-    }
+-  }
+-
+-  /**
+-   * Helper method for generateParser(). Generates the code that loads one
+-   * field of a specified name and type from the next element of the field
+-   * strings list.
+-   */
+-  private void parseColumn(String colName, int colType, StringBuilder sb) {
+-    // assume that we have __it and __cur_str vars, based on
+-    // __loadFromFields() code.
+-    sb.append("    __cur_str = __it.next();\n");
+-    String javaType = toJavaType(colName, colType);
+-
+-    parseNullVal(javaType, colName, sb);
+-    if (javaType.equals("String")) {
+-      // TODO(aaron): Distinguish between 'null' and null. Currently they both
+-      // set the actual object to null.
+-      sb.append("      this." + colName + " = __cur_str;\n");
+-    } else if (javaType.equals("Integer")) {
+-      sb.append("      this." + colName + " = Integer.valueOf(__cur_str);\n");
+-    } else if (javaType.equals("Long")) {
+-      sb.append("      this." + colName + " = Long.valueOf(__cur_str);\n");
+-    } else if (javaType.equals("Float")) {
+-      sb.append("      this." + colName + " = Float.valueOf(__cur_str);\n");
+-    } else if (javaType.equals("Double")) {
+-      sb.append("      this." + colName + " = Double.valueOf(__cur_str);\n");
+-    } else if (javaType.equals("Boolean")) {
+-      sb.append("      this." + colName
+-          + " = BooleanParser.valueOf(__cur_str);\n");
+-    } else if (javaType.equals("java.sql.Date")) {
+-      sb.append("      this." + colName
+-          + " = java.sql.Date.valueOf(__cur_str);\n");
+-    } else if (javaType.equals("java.sql.Time")) {
+-      sb.append("      this." + colName
+-          + " = java.sql.Time.valueOf(__cur_str);\n");
+-    } else if (javaType.equals("java.sql.Timestamp")) {
+-      sb.append("      this." + colName
+-          + " = java.sql.Timestamp.valueOf(__cur_str);\n");
+-    } else if (javaType.equals("java.math.BigDecimal")) {
+-      sb.append("      this." + colName
+-          + " = new java.math.BigDecimal(__cur_str);\n");
+-    } else if (javaType.equals(ClobRef.class.getName())) {
+-      sb.append("      this." + colName + " = ClobRef.parse(__cur_str);\n");
+-    } else if (javaType.equals(BlobRef.class.getName())) {
+-      sb.append("      this." + colName + " = BlobRef.parse(__cur_str);\n");
+-    } else if (javaType.equals(BytesWritable.class.getName())) {
+-      // Get the unsigned byte[] from the hex string representation
+-      // We cannot use Byte.parse() which always assumes a signed decimal byte
+-      sb.append("      String[] strByteVal = __cur_str.trim().split(\" \");\n");
+-      sb.append("      byte [] byteVal = new byte[strByteVal.length];\n");
+-      sb.append("      for (int i = 0; i < byteVal.length; ++i) {\n");
+-      sb.append("          byteVal[i] = "
+-              + "(byte)Integer.parseInt(strByteVal[i], 16);\n");
+-      sb.append("      }\n");
+-      sb.append("      this." + colName + " = new BytesWritable(byteVal);\n");
+-    } else {
+-      LOG.error("No parser available for Java type " + javaType);
+-    }
+-
+-    sb.append("    }\n\n"); // the closing '{' based on code in parseNullVal();
+-  }
+-
+-  /**
+-   * Generate the parse() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateParser(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    // Embed into the class the delimiter characters to use when parsing input
+-    // records.  Note that these can differ from the delims to use as output
+-    // via toString(), if the user wants to use this class to convert one
+-    // format to another.
+-    sb.append("  private static final DelimiterSet __inputDelimiters = ");
+-    sb.append(options.getInputDelimiters().formatConstructor() + ";\n");
+-
+-    // The parser object which will do the heavy lifting for field splitting.
+-    sb.append("  private RecordParser __parser;\n");
+-
+-    // Generate wrapper methods which will invoke the parser.
+-    generateParseMethod("Text", sb);
+-    generateParseMethod("CharSequence", sb);
+-    generateParseMethod("byte []", sb);
+-    generateParseMethod("char []", sb);
+-    generateParseMethod("ByteBuffer", sb);
+-    generateParseMethod("CharBuffer", sb);
+-
+-    // The wrapper methods call __loadFromFields() to actually interpret the
+-    // raw field data as string, int, boolean, etc. The generation of this
+-    // method is type-dependent for the fields.
+-    sb.append("  private void __loadFromFields(List<String> fields) {\n");
+-    sb.append("    Iterator<String> __it = fields.listIterator();\n");
+-    if (numberOfMethods > 1) {
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    this.__loadFromFields" + i + "(__it);\n");
+-      }
+-    } else {
+-      myGenerateParser(columnTypes, colNames, sb, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-    sb.append("  }\n\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateParser(columnTypes, colNames, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate the parse() method.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateParser(Map<String, Integer> columnTypes,
+-                                String[] colNames, StringBuilder sb,
+-                                int methodNumber, int size,
+-                                boolean wrapInMethod) {
+-    // The wrapper methods call __loadFromFields() to actually interpret the
+-    // raw field data as string, int, boolean, etc. The generation of this
+-    // method is type-dependent for the fields.
+-    if (wrapInMethod) {
+-      sb.append("  private void __loadFromFields" + methodNumber
+-              + "(Iterator<String> __it) {\n");
+-    }
+-    sb.append("    String __cur_str = null;\n");
+-    sb.append("    try {\n");
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String colName = colNames[i];
+-      int colType = columnTypes.get(colName);
+-      parseColumn(colName, colType, sb);
+-    }
+-    sb.append("    } catch (RuntimeException e) {");
+-    sb.append("    throw new RuntimeException("
+-        + "\"Can't parse input data: '\" + __cur_str + \"'\", e);");
+-    sb.append("    }");
+-    if (wrapInMethod) {
+-      sb.append("  }\n\n");
+-    }
+-  }
+-
+-  /**
+-   * Generate the write() method used by the Hadoop RPC system.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   */
+-  private void generateHadoopWrite(Map<String, Integer> columnTypes,
+-      String [] colNames, StringBuilder sb) {
+-
+-    int numberOfMethods =
+-            this.getNumberOfMethods(colNames, maxColumnsPerMethod);
+-
+-    sb.append("  public void write(DataOutput __dataOut) "
+-        + "throws IOException {\n");
+-
+-    if (numberOfMethods > 1) {
+-      for (int i = 0; i < numberOfMethods; ++i) {
+-        sb.append("    this.write" + i + "(__dataOut);\n");
+-      }
+-    } else {
+-      myGenerateHadoopWrite(columnTypes, colNames, sb, 0,
+-              maxColumnsPerMethod, false);
+-    }
+-
+-    sb.append("  }\n");
+-
+-    for (int i = 0; i < numberOfMethods; ++i) {
+-      myGenerateHadoopWrite(columnTypes, colNames, sb, i,
+-              maxColumnsPerMethod, true);
+-    }
+-  }
+-
+-  /**
+-   * Generate the write() method used by the Hadoop RPC system.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param sb - StringBuilder to append code to
+-   * @param methodNumber - method number
+-   * @param size - number of columns per method
+-   * @param wrapInMethod - wrap body in a method.
+-   */
+-  private void myGenerateHadoopWrite(Map<String, Integer> columnTypes,
+-                                     String[] colNames, StringBuilder sb,
+-                                     int methodNumber, int size,
+-                                     boolean wrapInMethod) {
+-    if (wrapInMethod) {
+-      sb.append("  public void write" + methodNumber + "(DataOutput __dataOut) "
+-          + "throws IOException {\n");
+-    }
+-
+-    for (int i = methodNumber * size;
+-         i < topBoundary(colNames, methodNumber, size); ++i) {
+-      String col = colNames[i];
+-      int sqlType = columnTypes.get(col);
+-      String javaType = toJavaType(col, sqlType);
+-      if (null == javaType) {
+-        LOG.error("No Java type for SQL type " + sqlType
+-            + " for column " + col);
+-        continue;
+-      }
+-
+-      String setterMethod = rpcSetterForMaybeNull(javaType, "__dataOut", col);
+-      if (null == setterMethod) {
+-        LOG.error("No RPC setter method for Java type " + javaType);
+-        continue;
+-      }
+-
+-      sb.append(setterMethod);
+-    }
+-
+-    if (wrapInMethod) {
+-      sb.append("  }\n");
+-    }
+-  }
+-
+-  /**
+-   * Create a list of identifiers to use based on the true column names
+-   * of the table.
+-   * @param colNames the actual column names of the table.
+-   * @return a list of column names in the same order which are
+-   * cleaned up to be used as identifiers in the generated Java class.
+-   */
+-  private String [] cleanColNames(String [] colNames) {
+-    String [] cleanedColNames = new String[colNames.length];
+-    for (int i = 0; i < colNames.length; i++) {
+-      String col = colNames[i];
+-      String identifier = toJavaIdentifier(col);
+-      cleanedColNames[i] = identifier;
+-    }
+-
+-    return cleanedColNames;
+-  }
+-
+-  /**
+-   * Made this a separate method to overcome the 150 line limit of checkstyle.
+-   */
+-  private void logORMSelfGenerationMessage() {
+-    LOG.info("The connection manager declares that it self manages mapping"
+-        + " between records & fields and rows & columns.  No class will"
+-        + " will be generated.");
+-  }
+-
+-  /**
+-   * Generate the ORM code for the class.
+-   */
+-  public void generate() throws IOException {
+-    Map<String, Integer> columnTypes = getColumnTypes();
+-    if (connManager.isORMFacilitySelfManaged()) {
+-      logORMSelfGenerationMessage();
+-      return;
+-    }
+-    if (columnTypes == null) {
+-      throw new IOException("No columns to generate for ClassWriter");
+-    }
+-
+-    String[] colNames = getColumnNames(columnTypes);
+-
+-    // Column number should be more than 0
+-    if (colNames == null || colNames.length == 0) {
+-      throw new IllegalArgumentException("There is no column found in the "
+-              + "target table " + tableName
+-              + ". Please ensure that your table name is correct.");
+-    }
+-
+-    // Translate all the column names into names that are safe to
+-    // use as identifiers.
+-    String [] cleanedColNames = cleanColNames(colNames);
+-    Set<String> uniqColNames = new HashSet<String>();
+-    for (int i = 0; i < colNames.length; i++) {
+-      String identifier = cleanedColNames[i];
+-
+-      if (identifier.isEmpty()) { // Name can't be blank
+-        throw new IllegalArgumentException("We found column without column "
+-                + "name. Please verify that you've entered all column names "
+-                + "in your query if using free form query import (consider "
+-                + "adding clause AS if you're using column transformation)");
+-      }
+-      // Guarantee uniq col identifier
+-      if (uniqColNames.contains(identifier)) {
+-          throw new IllegalArgumentException("Duplicate Column identifier "
+-              + "specified: '" + identifier + "'");
+-      }
+-      uniqColNames.add(identifier);
+-      // Make sure the col->type mapping holds for the new identifier name, too
+-      String col = colNames[i];
+-      Integer type = columnTypes.get(col);
+-      if (type == null) {
+-        // column doesn't have a type, means that is illegal column name!
+-        throw new IllegalArgumentException("Column name '" + col
+-            + "' not in table");
+-      }
+-      columnTypes.put(identifier, type);
+-    }
+-
+-    // Check that all explicitly mapped columns are present in result set
+-    Properties mapping = options.getMapColumnJava();
+-    if (mapping != null && !mapping.isEmpty()) {
+-      for(Object column : mapping.keySet()) {
+-        if (!uniqColNames.contains((String)column)) {
+-        throw new IllegalArgumentException(
+-            "No column by the name "
+-            + column
+-            + "found while importing data; expecting one of "
+-            + uniqColNames);
+-        }
+-      }
+-    }
+-
+-    // The db write() method may use column names in a different
+-    // order. If this is set in the options, pull it out here and
+-    // make sure we format the column names to identifiers in the same way
+-    // as we do for the ordinary column list.
+-    String [] dbWriteColNames = options.getDbOutputColumns();
+-    String [] cleanedDbWriteColNames = null;
+-    if (null == dbWriteColNames) {
+-      cleanedDbWriteColNames = cleanedColNames;
+-    } else {
+-      cleanedDbWriteColNames = cleanColNames(dbWriteColNames);
+-    }
+-
+-    if (LOG.isDebugEnabled()) {
+-      LOG.debug("selected columns:");
+-      for (String col : cleanedColNames) {
+-        LOG.debug("  " + col);
+-      }
+-
+-      if (cleanedDbWriteColNames != cleanedColNames) {
+-        // dbWrite() has a different set of columns than the rest of the
+-        // generators.
+-        LOG.debug("db write column order:");
+-        for (String dbCol : cleanedDbWriteColNames) {
+-          LOG.debug("  " + dbCol);
+-        }
+-      }
+-    }
+-
+-    // Generate the Java code.
+-    StringBuilder sb = generateClassForColumns(columnTypes,
+-        cleanedColNames, cleanedDbWriteColNames);
+-    // Write this out to a file in the jar output directory.
+-    // We'll move it to the user-visible CodeOutputDir after compiling.
+-    String codeOutDir = options.getJarOutputDir();
+-    // Get the class name to generate, which includes package components.
+-    String className = new TableClassName(options).getClassForTable(tableName);
+-    // Convert the '.' characters to '/' characters.
+-    String sourceFilename = className.replace('.', File.separatorChar)
+-        + ".java";
+-    String filename = codeOutDir + sourceFilename;
+-
+-    if (LOG.isDebugEnabled()) {
+-      LOG.debug("Writing source file: " + filename);
+-      LOG.debug("Table name: " + tableName);
+-      StringBuilder sbColTypes = new StringBuilder();
+-      for (String col : colNames) {
+-        Integer colType = columnTypes.get(col);
+-        sbColTypes.append(col + ":" + colType + ", ");
+-      }
+-      String colTypeStr = sbColTypes.toString();
+-      LOG.debug("Columns: " + colTypeStr);
+-      LOG.debug("sourceFilename is " + sourceFilename);
+-    }
+-
+-    compileManager.addSourceFile(sourceFilename);
+-
+-    // Create any missing parent directories.
+-    File file = new File(filename);
+-    File dir = file.getParentFile();
+-    if (null != dir && !dir.exists()) {
+-      boolean mkdirSuccess = dir.mkdirs();
+-      if (!mkdirSuccess) {
+-        LOG.debug("Could not create directory tree for " + dir);
+-      }
+-    }
+-
+-    OutputStream ostream = null;
+-    Writer writer = null;
+-    try {
+-      ostream = new FileOutputStream(filename);
+-      writer = new OutputStreamWriter(ostream);
+-      writer.append(sb.toString());
+-    } finally {
+-      if (null != writer) {
+-        try {
+-          writer.close();
+-        } catch (IOException ioe) { // ignored because we're closing.
+-        }
+-      }
+-      if (null != ostream) {
+-        try {
+-          ostream.close();
+-        } catch (IOException ioe) { // ignored because we're closing.
+-        }
+-      }
+-    }
+-  }
+-
+-  protected String[] getColumnNames(Map<String, Integer> columnTypes) {
+-    String [] colNames = options.getColumns();
+-    if (null == colNames) {
+-      if (null != tableName) {
+-        // Table-based import. Read column names from table.
+-        colNames = connManager.getColumnNames(tableName);
+-      } else if (options.getCall() != null) {
+-        // Read procedure arguments from metadata
+-        colNames = connManager.getColumnNamesForProcedure(
+-            this.options.getCall());
+-      } else {
+-        // Infer/assign column names for arbitrary query.
+-        colNames = connManager.getColumnNamesForQuery(
+-            this.options.getSqlQuery());
+-      }
+-    } else {
+-      // These column names were provided by the user. They may not be in
+-      // the same case as the keys in the columnTypes map. So make sure
+-      // we add the appropriate aliases in that map.
+-      for (String userColName : colNames) {
+-        for (Map.Entry<String, Integer> typeEntry : columnTypes.entrySet()) {
+-          String typeColName = typeEntry.getKey();
+-          if (typeColName.equalsIgnoreCase(userColName)
+-              && !typeColName.equals(userColName)) {
+-            // We found the correct-case equivalent.
+-            columnTypes.put(userColName, typeEntry.getValue());
+-            // No need to continue iteration; only one could match.
+-            // Also, the use of put() just invalidated the iterator.
+-            break;
+-          }
+-        }
+-      }
+-    }
+-    return colNames;
+-  }
+-
+-  protected Map<String, Integer> getColumnTypes() throws IOException {
+-    if (options.getCall() == null) {
+-      return connManager.getColumnTypes(tableName, options.getSqlQuery());
+-    } else {
+-      return connManager.getColumnTypesForProcedure(options.getCall());
+-    }
+-  }
+-
+-  /**
+-   * Generate the ORM code for a table object containing the named columns.
+-   * @param columnTypes - mapping from column names to sql types
+-   * @param colNames - ordered list of column names for table.
+-   * @param dbWriteColNames - ordered list of column names for the db
+-   * write() method of the class.
+-   * @return - A StringBuilder that contains the text of the class code.
+-   */
+-  private StringBuilder generateClassForColumns(
+-      Map<String, Integer> columnTypes,
+-      String [] colNames, String [] dbWriteColNames) {
+-    if (colNames.length ==0) {
+-      throw new IllegalArgumentException("Attempted to generate class with "
+-          + "no columns!");
+-    }
+-    StringBuilder sb = new StringBuilder();
+-    sb.append("// ORM class for table '" + tableName + "'\n");
+-    sb.append("// WARNING: This class is AUTO-GENERATED. "
+-        + "Modify at your own risk.\n");
+-    sb.append("//\n");
+-    sb.append("// Debug information:\n");
+-    sb.append("// Generated date: " + (new Date()) + "\n");
+-    sb.append("// For connector: " + connManager.getClass().getCanonicalName()
+-      + "\n");
+-
+-    TableClassName tableNameInfo = new TableClassName(options);
+-
+-    String packageName = tableNameInfo.getPackageForTable();
+-    if (null != packageName) {
+-      sb.append("package ");
+-      sb.append(packageName);
+-      sb.append(";\n");
+-    }
+-
+-    sb.append("import org.apache.hadoop.io.BytesWritable;\n");
+-    sb.append("import org.apache.hadoop.io.Text;\n");
+-    sb.append("import org.apache.hadoop.io.Writable;\n");
+-    sb.append("import org.apache.hadoop.mapred.lib.db.DBWritable;\n");
+-    sb.append("import " + JdbcWritableBridge.class.getCanonicalName() + ";\n");
+-    sb.append("import " + DelimiterSet.class.getCanonicalName() + ";\n");
+-    sb.append("import " + FieldFormatter.class.getCanonicalName() + ";\n");
+-    sb.append("import " + RecordParser.class.getCanonicalName() + ";\n");
+-    sb.append("import " + BooleanParser.class.getCanonicalName() + ";\n");
+-    sb.append("import " + BlobRef.class.getCanonicalName() + ";\n");
+-    sb.append("import " + ClobRef.class.getCanonicalName() + ";\n");
+-    sb.append("import " + LargeObjectLoader.class.getCanonicalName() + ";\n");
+-    sb.append("import " + SqoopRecord.class.getCanonicalName() + ";\n");
+-    sb.append("import java.sql.PreparedStatement;\n");
+-    sb.append("import java.sql.ResultSet;\n");
+-    sb.append("import java.sql.SQLException;\n");
+-    sb.append("import java.io.DataInput;\n");
+-    sb.append("import java.io.DataOutput;\n");
+-    sb.append("import java.io.IOException;\n");
+-    sb.append("import java.nio.ByteBuffer;\n");
+-    sb.append("import java.nio.CharBuffer;\n");
+-    sb.append("import java.sql.Date;\n");
+-    sb.append("import java.sql.Time;\n");
+-    sb.append("import java.sql.Timestamp;\n");
+-    sb.append("import java.util.Arrays;\n");
+-    sb.append("import java.util.Iterator;\n");
+-    sb.append("import java.util.List;\n");
+-    sb.append("import java.util.Map;\n");
+-    sb.append("import java.util.TreeMap;\n");
+-    sb.append("\n");
+-
+-    String className = tableNameInfo.getShortClassForTable(tableName);
+-    sb.append("public class " + className + " extends SqoopRecord "
+-        + " implements DBWritable, Writable {\n");
+-    sb.append("  private final int PROTOCOL_VERSION = "
+-        + CLASS_WRITER_VERSION + ";\n");
+-    sb.append(
+-        "  public int getClassFormatVersion() { return PROTOCOL_VERSION; }\n");
+-    sb.append("  protected ResultSet __cur_result_set;\n");
+-    generateFields(columnTypes, colNames, className, sb);
+-    generateEquals(columnTypes, colNames, className, sb);
+-    generateDbRead(columnTypes, colNames, sb);
+-    generateLoadLargeObjects(columnTypes, colNames, sb);
+-    generateDbWrite(columnTypes, dbWriteColNames, sb);
+-    generateHadoopRead(columnTypes, colNames, sb);
+-    generateHadoopWrite(columnTypes, colNames, sb);
+-    generateToString(columnTypes, colNames, sb);
+-    generateParser(columnTypes, colNames, sb);
+-    generateCloneMethod(columnTypes, colNames, sb);
+-    generateGetFieldMap(columnTypes, colNames, sb);
+-    generateSetField(columnTypes, colNames, sb);
+-
+-    // TODO(aaron): Generate hashCode(), compareTo(), equals() so it can be a
+-    // WritableComparable
+-
+-    sb.append("}\n");
+-
+-    return sb;
+-  }
+-}
+diff --git a/src/java/org/apache/sqoop/tool/JobTool.java b/src/java/org/apache/sqoop/tool/JobTool.java
+index 77e4490..4359058 100644
+--- a/src/java/org/apache/sqoop/tool/JobTool.java
++++ b/src/java/org/apache/sqoop/tool/JobTool.java
+@@ -18,386 +18,381 @@
+ 
+ package org.apache.sqoop.tool;
+ 
+-import com.cloudera.sqoop.SqoopOptions;
+-import com.cloudera.sqoop.SqoopOptions.InvalidOptionsException;
+-import com.cloudera.sqoop.cli.ToolOptions;
+-import com.cloudera.sqoop.metastore.JobData;
+-import com.cloudera.sqoop.metastore.JobStorage;
+-import com.cloudera.sqoop.metastore.JobStorageFactory;
+-import com.cloudera.sqoop.metastore.hsqldb.HsqldbJobStorage;
++import java.io.IOException;
++
++import java.util.Arrays;
++import java.util.List;
++import java.util.Map;
++import java.util.Properties;
++import java.util.TreeMap;
++
+ import org.apache.commons.cli.CommandLine;
+ import org.apache.commons.cli.ParseException;
+ import org.apache.commons.logging.Log;
+ import org.apache.commons.logging.LogFactory;
++
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.util.StringUtils;
+ import org.apache.hadoop.util.ToolRunner;
+-import org.apache.sqoop.metastore.mysqldb.MysqldbJobStorage;
++import com.cloudera.sqoop.SqoopOptions;
++import com.cloudera.sqoop.SqoopOptions.InvalidOptionsException;
++import com.cloudera.sqoop.cli.ToolOptions;
++import com.cloudera.sqoop.metastore.hsqldb.HsqldbJobStorage;
++import com.cloudera.sqoop.metastore.JobData;
++import com.cloudera.sqoop.metastore.JobStorage;
++import com.cloudera.sqoop.metastore.JobStorageFactory;
+ import org.apache.sqoop.util.LoggingUtils;
+ 
+-import java.io.IOException;
+-import java.util.Arrays;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Properties;
+-import java.util.TreeMap;
+-
+ /**
+  * Tool that creates and executes saved jobs.
+  */
+ public class JobTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
+ 
+-    public static final Log LOG = LogFactory.getLog(
+-            JobTool.class.getName());
+-
+-    private enum JobOp {
+-        JobCreate,
+-        JobDelete,
+-        JobExecute,
+-        JobList,
+-        JobShow,
++  public static final Log LOG = LogFactory.getLog(
++      JobTool.class.getName());
++
++  private enum JobOp {
++    JobCreate,
++    JobDelete,
++    JobExecute,
++    JobList,
++    JobShow,
++  };
++
++  private Map<String, String> storageDescriptor;
++  private String jobName;
++  private JobOp operation;
++  private JobStorage storage;
++
++  public JobTool() {
++    super("job");
++  }
++
++  /**
++   * Given an array of strings, return all elements of this
++   * array up to (but not including) the first instance of "--".
++   */
++  private String [] getElementsUpToDoubleDash(String [] array) {
++    String [] parseableChildArgv = null;
++    for (int i = 0; i < array.length; i++) {
++      if ("--".equals(array[i])) {
++        parseableChildArgv = Arrays.copyOfRange(array, 0, i);
++        break;
++      }
+     }
+ 
+-    ;
+-
+-    private Map<String, String> storageDescriptor;
+-    private String jobName;
+-    private JobOp operation;
+-    private JobStorage storage;
+-
+-    public JobTool() {
+-        super("job");
++    if (parseableChildArgv == null) {
++      // Didn't find any nested '--'.
++      parseableChildArgv = array;
+     }
+ 
+-    /**
+-     * Given an array of strings, return all elements of this
+-     * array up to (but not including) the first instance of "--".
+-     */
+-    private String[] getElementsUpToDoubleDash(String[] array) {
+-        String[] parseableChildArgv = null;
+-        for (int i = 0; i < array.length; i++) {
+-            if ("--".equals(array[i])) {
+-                parseableChildArgv = Arrays.copyOfRange(array, 0, i);
+-                break;
+-            }
+-        }
+-
+-        if (parseableChildArgv == null) {
+-            // Didn't find any nested '--'.
+-            parseableChildArgv = array;
+-        }
+-
+-        return parseableChildArgv;
++    return parseableChildArgv;
++  }
++
++  /**
++   * Given an array of strings, return the first instance
++   * of "--" and all following elements.
++   * If no "--" exists, return null.
++   */
++  private String [] getElementsAfterDoubleDash(String [] array) {
++    String [] extraChildArgv = null;
++    for (int i = 0; i < array.length; i++) {
++      if ("--".equals(array[i])) {
++        extraChildArgv = Arrays.copyOfRange(array, i, array.length);
++        break;
++      }
+     }
+ 
+-    /**
+-     * Given an array of strings, return the first instance
+-     * of "--" and all following elements.
+-     * If no "--" exists, return null.
+-     */
+-    private String[] getElementsAfterDoubleDash(String[] array) {
+-        String[] extraChildArgv = null;
+-        for (int i = 0; i < array.length; i++) {
+-            if ("--".equals(array[i])) {
+-                extraChildArgv = Arrays.copyOfRange(array, i, array.length);
+-                break;
+-            }
+-        }
+-
+-        return extraChildArgv;
++    return extraChildArgv;
++  }
++
++  private int configureChildTool(SqoopOptions childOptions,
++      SqoopTool childTool, String [] childArgv) {
++    // Within the child arguments there may be a '--' followed by
++    // dependent args. Stash them off to the side.
++
++    // Everything up to the '--'.
++    String [] parseableChildArgv = getElementsUpToDoubleDash(childArgv);
++
++    // The '--' and any subsequent args.
++    String [] extraChildArgv = getElementsAfterDoubleDash(childArgv);
++
++    // Now feed the arguments into the tool itself.
++    try {
++      childOptions = childTool.parseArguments(parseableChildArgv,
++          null, childOptions, false);
++      childTool.appendArgs(extraChildArgv);
++      childTool.validateOptions(childOptions);
++    } catch (ParseException pe) {
++      LOG.error("Error parsing arguments to the job-specific tool.");
++      LOG.error("See 'sqoop help <tool>' for usage.");
++      return 1;
++    } catch (SqoopOptions.InvalidOptionsException e) {
++      System.err.println(e.getMessage());
++      return 1;
+     }
+ 
+-    private int configureChildTool(SqoopOptions childOptions,
+-                                   SqoopTool childTool, String[] childArgv) {
+-        // Within the child arguments there may be a '--' followed by
+-        // dependent args. Stash them off to the side.
+-
+-        // Everything up to the '--'.
+-        String[] parseableChildArgv = getElementsUpToDoubleDash(childArgv);
+-
+-        // The '--' and any subsequent args.
+-        String[] extraChildArgv = getElementsAfterDoubleDash(childArgv);
+-
+-        // Now feed the arguments into the tool itself.
+-        try {
+-            childOptions = childTool.parseArguments(parseableChildArgv,
+-                    null, childOptions, false);
+-            childTool.appendArgs(extraChildArgv);
+-            childTool.validateOptions(childOptions);
+-        } catch (ParseException pe) {
+-            LOG.error("Error parsing arguments to the job-specific tool.");
+-            LOG.error("See 'sqoop help <tool>' for usage.");
+-            return 1;
+-        } catch (SqoopOptions.InvalidOptionsException e) {
+-            System.err.println(e.getMessage());
+-            return 1;
+-        }
+-
+-        return 0; // Success.
++    return 0; // Success.
++  }
++
++  private int createJob(SqoopOptions options) throws IOException {
++    // In our extraArguments array, we should have a '--' followed by
++    // a tool name, and any tool-specific arguments.
++    // Create an instance of the named tool and then configure it to
++    // get a SqoopOptions out which we will serialize into a job.
++    int dashPos = getDashPosition(extraArguments);
++    int toolArgPos = dashPos + 1;
++    if (null == extraArguments || toolArgPos < 0
++        || toolArgPos >= extraArguments.length) {
++      LOG.error("No tool specified; cannot create a job.");
++      LOG.error("Use: sqoop job --create <job-name> "
++          + "-- <tool-name> [tool-args]");
++      return 1;
+     }
+ 
+-    private int createJob(SqoopOptions options) throws IOException {
+-        // In our extraArguments array, we should have a '--' followed by
+-        // a tool name, and any tool-specific arguments.
+-        // Create an instance of the named tool and then configure it to
+-        // get a SqoopOptions out which we will serialize into a job.
+-        int dashPos = getDashPosition(extraArguments);
+-        int toolArgPos = dashPos + 1;
+-        if (null == extraArguments || toolArgPos < 0
+-                || toolArgPos >= extraArguments.length) {
+-            LOG.error("No tool specified; cannot create a job.");
+-            LOG.error("Use: sqoop job --create <job-name> "
+-                    + "-- <tool-name> [tool-args]");
+-            return 1;
+-        }
+-
+-        String jobToolName = extraArguments[toolArgPos];
+-        SqoopTool jobTool = SqoopTool.getTool(jobToolName);
+-        if (null == jobTool) {
+-            LOG.error("No such tool available: " + jobToolName);
+-            return 1;
+-        }
+-
+-        // Create a SqoopOptions and Configuration based on the current one,
+-        // but deep-copied. This will be populated within the job.
+-        SqoopOptions jobOptions = new SqoopOptions();
+-        jobOptions.setConf(new Configuration(options.getConf()));
++    String jobToolName = extraArguments[toolArgPos];
++    SqoopTool jobTool = SqoopTool.getTool(jobToolName);
++    if (null == jobTool) {
++      LOG.error("No such tool available: " + jobToolName);
++      return 1;
++    }
+ 
+-        // Get the arguments to feed to the child tool.
+-        String[] childArgs = Arrays.copyOfRange(extraArguments, toolArgPos + 1,
+-                extraArguments.length);
++    // Create a SqoopOptions and Configuration based on the current one,
++    // but deep-copied. This will be populated within the job.
++    SqoopOptions jobOptions = new SqoopOptions();
++    jobOptions.setConf(new Configuration(options.getConf()));
+ 
+-        int confRet = configureChildTool(jobOptions, jobTool, childArgs);
+-        if (0 != confRet) {
+-            // Error.
+-            return confRet;
+-        }
++    // Get the arguments to feed to the child tool.
++    String [] childArgs = Arrays.copyOfRange(extraArguments, toolArgPos + 1,
++        extraArguments.length);
+ 
+-        // Now that the tool is fully configured, materialize the job.
+-        //TODO(jarcec): Remove the cast when JobData will be moved to apache package
+-        JobData jobData = new JobData(jobOptions,
+-                (com.cloudera.sqoop.tool.SqoopTool) jobTool);
+-        this.storage.create(jobName, jobData);
+-        return 0; // Success.
++    int confRet = configureChildTool(jobOptions, jobTool, childArgs);
++    if (0 != confRet) {
++      // Error.
++      return confRet;
+     }
+ 
+-    private int listJobs(SqoopOptions opts) throws IOException {
+-        List<String> jobNames = storage.list();
+-        System.out.println("Available jobs:");
+-        for (String name : jobNames) {
+-            System.out.println("  " + name);
+-        }
+-        return 0;
++    // Now that the tool is fully configured, materialize the job.
++    //TODO(jarcec): Remove the cast when JobData will be moved to apache package
++    JobData jobData = new JobData(jobOptions,
++            (com.cloudera.sqoop.tool.SqoopTool)jobTool);
++    this.storage.create(jobName, jobData);
++    return 0; // Success.
++  }
++
++  private int listJobs(SqoopOptions opts) throws IOException {
++    List<String> jobNames = storage.list();
++    System.out.println("Available jobs:");
++    for (String name : jobNames) {
++      System.out.println("  " + name);
+     }
+-
+-    private int deleteJob(SqoopOptions opts) throws IOException {
+-        this.storage.delete(jobName);
+-        return 0;
++    return 0;
++  }
++
++  private int deleteJob(SqoopOptions opts) throws IOException {
++    this.storage.delete(jobName);
++    return 0;
++  }
++
++  private int execJob(SqoopOptions opts) throws IOException {
++    JobData data = this.storage.read(jobName);
++    if (null == data) {
++      LOG.error("No such job: " + jobName);
++      return 1;
+     }
+ 
+-    private int execJob(SqoopOptions opts) throws IOException {
+-        JobData data = this.storage.read(jobName);
+-        if (null == data) {
+-            LOG.error("No such job: " + jobName);
+-            return 1;
+-        }
+-
+-        SqoopOptions childOpts = data.getSqoopOptions();
+-        SqoopTool childTool = data.getSqoopTool();
+-
+-        // Don't overwrite the original SqoopOptions with the
+-        // arguments; make a child options.
++    SqoopOptions childOpts = data.getSqoopOptions();
++    SqoopTool childTool = data.getSqoopTool();
+ 
+-        SqoopOptions clonedOpts = (SqoopOptions) childOpts.clone();
+-        clonedOpts.setParent(childOpts);
++    // Don't overwrite the original SqoopOptions with the
++    // arguments; make a child options.
+ 
+-        int dashPos = getDashPosition(extraArguments);
+-        String[] childArgv;
+-        if (dashPos >= extraArguments.length) {
+-            childArgv = new String[0];
+-        } else {
+-            childArgv = Arrays.copyOfRange(extraArguments, dashPos + 1,
+-                    extraArguments.length);
+-        }
+-
+-        int confRet = configureChildTool(clonedOpts, childTool, childArgv);
+-        if (0 != confRet) {
+-            // Error.
+-            return confRet;
+-        }
++    SqoopOptions clonedOpts = (SqoopOptions) childOpts.clone();
++    clonedOpts.setParent(childOpts);
+ 
+-        return childTool.run(clonedOpts);
++    int dashPos = getDashPosition(extraArguments);
++    String [] childArgv;
++    if (dashPos >= extraArguments.length) {
++      childArgv = new String[0];
++    } else {
++      childArgv = Arrays.copyOfRange(extraArguments, dashPos + 1,
++          extraArguments.length);
+     }
+ 
+-    private int showJob(SqoopOptions opts) throws IOException {
+-        JobData data = this.storage.read(jobName);
+-        if (null == data) {
+-            LOG.error("No such job: " + jobName);
+-            return 1;
+-        }
++    int confRet = configureChildTool(clonedOpts, childTool, childArgv);
++    if (0 != confRet) {
++      // Error.
++      return confRet;
++    }
+ 
+-        SqoopOptions childOpts = data.getSqoopOptions();
+-        SqoopTool childTool = data.getSqoopTool();
++    return childTool.run(clonedOpts);
++  }
+ 
+-        System.out.println("Job: " + jobName);
+-        System.out.println("Tool: " + childTool.getToolName());
++  private int showJob(SqoopOptions opts) throws IOException {
++    JobData data = this.storage.read(jobName);
++    if (null == data) {
++      LOG.error("No such job: " + jobName);
++      return 1;
++    }
+ 
+-        System.out.println("Options:");
+-        System.out.println("----------------------------");
+-        Properties props = childOpts.writeProperties();
+-        for (Map.Entry<Object, Object> entry : props.entrySet()) {
+-            System.out.println(entry.getKey().toString() + " = " + entry.getValue());
+-        }
++    SqoopOptions childOpts = data.getSqoopOptions();
++    SqoopTool childTool = data.getSqoopTool();
+ 
+-        // TODO: This does not show entries in the Configuration
+-        // (SqoopOptions.getConf()) which were stored as different from the
+-        // default.
++    System.out.println("Job: " + jobName);
++    System.out.println("Tool: " + childTool.getToolName());
+ 
+-        return 0;
++    System.out.println("Options:");
++    System.out.println("----------------------------");
++    Properties props = childOpts.writeProperties();
++    for (Map.Entry<Object, Object> entry : props.entrySet()) {
++      System.out.println(entry.getKey().toString() + " = " + entry.getValue());
+     }
+ 
+-    @Override
+-    /** {@inheritDoc} */
+-    public int run(SqoopOptions options) {
+-        // Get a JobStorage instance to use to materialize this job.
+-        JobStorageFactory ssf = new JobStorageFactory(options.getConf());
+-        this.storage = ssf.getJobStorage(storageDescriptor);
+-        if (null == this.storage) {
+-            LOG.error("There is no JobStorage implementation available");
+-            LOG.error("that can read your specified storage descriptor.");
+-            LOG.error("Don't know where to save this job info! You may");
+-            LOG.error("need to specify the connect string with --meta-connect.");
+-            return 1;
+-        }
++    // TODO: This does not show entries in the Configuration
++    // (SqoopOptions.getConf()) which were stored as different from the
++    // default.
++
++    return 0;
++  }
++
++  @Override
++  /** {@inheritDoc} */
++  public int run(SqoopOptions options) {
++    // Get a JobStorage instance to use to materialize this job.
++    JobStorageFactory ssf = new JobStorageFactory(options.getConf());
++    this.storage = ssf.getJobStorage(storageDescriptor);
++    if (null == this.storage) {
++      LOG.error("There is no JobStorage implementation available");
++      LOG.error("that can read your specified storage descriptor.");
++      LOG.error("Don't know where to save this job info! You may");
++      LOG.error("need to specify the connect string with --meta-connect.");
++      return 1;
++    }
+ 
++    try {
++      // Open the storage layer.
++      this.storage.open(this.storageDescriptor);
++
++      // And now determine what operation to perform with it.
++      switch (operation) {
++      case JobCreate:
++        return createJob(options);
++      case JobDelete:
++        return deleteJob(options);
++      case JobExecute:
++        return execJob(options);
++      case JobList:
++        return listJobs(options);
++      case JobShow:
++        return showJob(options);
++      default:
++        LOG.error("Undefined job operation: " + operation);
++        return 1;
++      }
++    } catch (IOException ioe) {
++      LOG.error("I/O error performing job operation: "
++          + StringUtils.stringifyException(ioe));
++      return 1;
++    } finally {
++      if (null != this.storage) {
+         try {
+-            // Open the storage layer.
+-            this.storage.open(this.storageDescriptor);
+-
+-            // And now determine what operation to perform with it.
+-            switch (operation) {
+-                case JobCreate:
+-                    return createJob(options);
+-                case JobDelete:
+-                    return deleteJob(options);
+-                case JobExecute:
+-                    return execJob(options);
+-                case JobList:
+-                    return listJobs(options);
+-                case JobShow:
+-                    return showJob(options);
+-                default:
+-                    LOG.error("Undefined job operation: " + operation);
+-                    return 1;
+-            }
++          storage.close();
+         } catch (IOException ioe) {
+-            LOG.error("I/O error performing job operation: "
+-                    + StringUtils.stringifyException(ioe));
+-            return 1;
+-        } finally {
+-            if (null != this.storage) {
+-                try {
+-                    storage.close();
+-                } catch (IOException ioe) {
+-                    LOG.warn("IOException closing JobStorage: "
+-                            + StringUtils.stringifyException(ioe));
+-                }
+-            }
++          LOG.warn("IOException closing JobStorage: "
++              + StringUtils.stringifyException(ioe));
+         }
++      }
+     }
+-
+-    @Override
+-    /** Configure the command-line arguments we expect to receive */
+-    public void configureOptions(ToolOptions toolOptions) {
+-        toolOptions.addUniqueOptions(getJobOptions());
++  }
++
++  @Override
++  /** Configure the command-line arguments we expect to receive */
++  public void configureOptions(ToolOptions toolOptions) {
++    toolOptions.addUniqueOptions(getJobOptions());
++  }
++
++  @Override
++  /** {@inheritDoc} */
++  public void applyOptions(CommandLine in, SqoopOptions out)
++      throws InvalidOptionsException {
++
++    if (in.hasOption(VERBOSE_ARG)) {
++      LoggingUtils.setDebugLevel();
++      LOG.debug("Enabled debug logging.");
+     }
+ 
+-    @Override
+-    /** {@inheritDoc} */
+-    public void applyOptions(CommandLine in, SqoopOptions out)
+-            throws InvalidOptionsException {
+-
+-        if (in.hasOption(VERBOSE_ARG)) {
+-            LoggingUtils.setDebugLevel();
+-            LOG.debug("Enabled debug logging.");
+-        }
+-
+-        if (in.hasOption(HELP_ARG)) {
+-            ToolOptions toolOpts = new ToolOptions();
+-            configureOptions(toolOpts);
+-            printHelp(toolOpts);
+-            throw new InvalidOptionsException("");
+-        }
+-
+-        this.storageDescriptor = new TreeMap<String, String>();
++    if (in.hasOption(HELP_ARG)) {
++      ToolOptions toolOpts = new ToolOptions();
++      configureOptions(toolOpts);
++      printHelp(toolOpts);
++      throw new InvalidOptionsException("");
++    }
+ 
+-        if (in.hasOption(STORAGE_METASTORE_ARG)) {
+-            if (STORAGE_METASTORE_ARG.startsWith("jdbc:mysql")) {
+-                this.storageDescriptor.put(MysqldbJobStorage.META_CONNECT_KEY, in.getOptionValue(STORAGE_METASTORE_ARG));
+-            } else {
+-                this.storageDescriptor.put(HsqldbJobStorage.META_CONNECT_KEY,
+-                        in.getOptionValue(STORAGE_METASTORE_ARG));
+-            }
+-        }
++    this.storageDescriptor = new TreeMap<String, String>();
+ 
+-        // These are generated via an option group; exactly one
+-        // of this exhaustive list will always be selected.
+-        if (in.hasOption(JOB_CMD_CREATE_ARG)) {
+-            this.operation = JobOp.JobCreate;
+-            this.jobName = in.getOptionValue(JOB_CMD_CREATE_ARG);
+-        } else if (in.hasOption(JOB_CMD_DELETE_ARG)) {
+-            this.operation = JobOp.JobDelete;
+-            this.jobName = in.getOptionValue(JOB_CMD_DELETE_ARG);
+-        } else if (in.hasOption(JOB_CMD_EXEC_ARG)) {
+-            this.operation = JobOp.JobExecute;
+-            this.jobName = in.getOptionValue(JOB_CMD_EXEC_ARG);
+-        } else if (in.hasOption(JOB_CMD_LIST_ARG)) {
+-            this.operation = JobOp.JobList;
+-        } else if (in.hasOption(JOB_CMD_SHOW_ARG)) {
+-            this.operation = JobOp.JobShow;
+-            this.jobName = in.getOptionValue(JOB_CMD_SHOW_ARG);
+-        }
++    if (in.hasOption(STORAGE_METASTORE_ARG)) {
++      this.storageDescriptor.put(HsqldbJobStorage.META_CONNECT_KEY,
++          in.getOptionValue(STORAGE_METASTORE_ARG));
+     }
+ 
+-    @Override
+-    /** {@inheritDoc} */
+-    public void validateOptions(SqoopOptions options)
+-            throws InvalidOptionsException {
+-
+-        if (null == operation
+-                || (null == this.jobName && operation != JobOp.JobList)) {
+-            throw new InvalidOptionsException("No job operation specified"
+-                    + HELP_STR);
+-        }
++    // These are generated via an option group; exactly one
++    // of this exhaustive list will always be selected.
++    if (in.hasOption(JOB_CMD_CREATE_ARG)) {
++      this.operation = JobOp.JobCreate;
++      this.jobName = in.getOptionValue(JOB_CMD_CREATE_ARG);
++    } else if (in.hasOption(JOB_CMD_DELETE_ARG)) {
++      this.operation = JobOp.JobDelete;
++      this.jobName = in.getOptionValue(JOB_CMD_DELETE_ARG);
++    } else if (in.hasOption(JOB_CMD_EXEC_ARG)) {
++      this.operation = JobOp.JobExecute;
++      this.jobName = in.getOptionValue(JOB_CMD_EXEC_ARG);
++    } else if (in.hasOption(JOB_CMD_LIST_ARG)) {
++      this.operation = JobOp.JobList;
++    } else if (in.hasOption(JOB_CMD_SHOW_ARG)) {
++      this.operation = JobOp.JobShow;
++      this.jobName = in.getOptionValue(JOB_CMD_SHOW_ARG);
++    }
++  }
+ 
+-        if (operation == JobOp.JobCreate) {
+-            // Check that we have a '--' followed by at least a tool name.
+-            if (extraArguments == null || extraArguments.length == 0) {
+-                throw new InvalidOptionsException(
+-                        "Expected: -- <tool-name> [tool-args] "
+-                                + HELP_STR);
+-            }
+-        }
++  @Override
++  /** {@inheritDoc} */
++  public void validateOptions(SqoopOptions options)
++      throws InvalidOptionsException {
+ 
+-        int dashPos = getDashPosition(extraArguments);
+-        if (hasUnrecognizedArgs(extraArguments, 0, dashPos)) {
+-            throw new InvalidOptionsException(HELP_STR);
+-        }
++    if (null == operation
++        || (null == this.jobName && operation != JobOp.JobList)) {
++      throw new InvalidOptionsException("No job operation specified"
++          + HELP_STR);
+     }
+ 
+-    @Override
+-    /** {@inheritDoc} */
+-    public void printHelp(ToolOptions opts) {
+-        System.out.println("usage: sqoop " + getToolName()
+-                + " [GENERIC-ARGS] [JOB-ARGS] [-- [<tool-name>] [TOOL-ARGS]]");
+-        System.out.println("");
+-
+-        opts.printHelp();
++    if (operation == JobOp.JobCreate) {
++      // Check that we have a '--' followed by at least a tool name.
++      if (extraArguments == null || extraArguments.length == 0) {
++        throw new InvalidOptionsException(
++            "Expected: -- <tool-name> [tool-args] "
++            + HELP_STR);
++      }
++    }
+ 
+-        System.out.println("");
+-        System.out.println("Generic Hadoop command-line arguments:");
+-        System.out.println("(must preceed any tool-specific arguments)");
+-        ToolRunner.printGenericCommandUsage(System.out);
++    int dashPos = getDashPosition(extraArguments);
++    if (hasUnrecognizedArgs(extraArguments, 0, dashPos)) {
++      throw new InvalidOptionsException(HELP_STR);
+     }
++  }
++
++  @Override
++  /** {@inheritDoc} */
++  public void printHelp(ToolOptions opts) {
++    System.out.println("usage: sqoop " + getToolName()
++        + " [GENERIC-ARGS] [JOB-ARGS] [-- [<tool-name>] [TOOL-ARGS]]");
++    System.out.println("");
++
++    opts.printHelp();
++
++    System.out.println("");
++    System.out.println("Generic Hadoop command-line arguments:");
++    System.out.println("(must preceed any tool-specific arguments)");
++    ToolRunner.printGenericCommandUsage(System.out);
++  }
+ }
+ 
