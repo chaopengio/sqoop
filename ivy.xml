@@ -44,7 +44,7 @@ under the License.
     <conf name="avro" visibility="private" extends="avrohadoop${avrohadoopprofile}" />
     <conf name="avrohadoop1" visibility="private" />
     <conf name="avrohadoop2" visibility="private" />
-    <conf name="hcatalog13" visibility="private" />
+      <conf name="hcatalog13" visibility="private" />
     <conf name="hadoop23" visibility="private"
       extends="common,runtime,avro,hbase${hbaseprofile},hcatalog${hcatprofile},accumulo" />
     <conf name="hadoop20" visibility="private"
@@ -194,7 +194,11 @@ under the License.
       <exclude org="com.twitter" module="parquet-hive-bundle"/>
     </dependency>
 
-    <!-- dependencies for static analysis -->
+    <dependency org="mysql" name="mysql-connector-java" rev="${mysqldb.version}"
+            conf="common->default;redist->default"/>
+
+
+      <!-- dependencies for static analysis -->
     <dependency org="checkstyle" name="checkstyle" rev="${checkstyle.version}"
       conf="checkstyle->default" />
 
@@ -300,7 +304,7 @@ under the License.
     <dependency org="org.postgresql" name="postgresql"
       rev="${postgresql.version}" conf="common->default" />
 
-    <dependency org="org.apache.avro" name="avro" rev="${avro.version}"
+      <dependency org="org.apache.avro" name="avro" rev="${avro.version}"
       conf="avro->default;redist->default">
       <exclude org="org.slf4j" module="slf4j-api"/>
       <exclude org="org.mortbay.jetty" module="jetty"/>

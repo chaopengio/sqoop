@@ -172,6 +172,19 @@
         <property name="avrohadoopprofile" value="2" />
       </then>
     </elseif>
+    
+    <elseif>
+      <equals arg1="${hadoopversion}" arg2="271" />
+      <then>
+        <property name="hadoop.version" value="2.7.1" />
+        <property name="hbase94.version" value="1.1.2" />
+        <property name="zookeeper.version" value="3.4.2" />
+        <property name="hadoop.version.full" value="2.7.1" />
+        <property name="hcatalog.version" value="1.2.1" />
+        <property name="hbasecompatprofile" value="2" />
+        <property name="avrohadoopprofile" value="2" />
+      </then>
+    </elseif>
 
     <elseif>
       <equals arg1="${hadoopversion}" arg2="210" />
@@ -641,7 +654,7 @@
   </target>
 
   <target name="package"
-      depends="jar-all,compile-all,docs,ivy-retrieve-redist,scripts"
+      depends="jar-all,compile-all,ivy-retrieve-redist,scripts"
       description="Create a redistributable package">
 
     <mkdir dir="${dist.dir}"/>

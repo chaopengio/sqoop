@@ -17,8 +17,15 @@
  */
 package org.apache.sqoop.metastore.hsqldb;
 
-import java.io.IOException;
+import com.cloudera.sqoop.SqoopOptions;
+import com.cloudera.sqoop.metastore.JobData;
+import com.cloudera.sqoop.metastore.JobStorage;
+import com.cloudera.sqoop.tool.SqoopTool;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -30,16 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.apache.hadoop.conf.Configuration;
-
-import com.cloudera.sqoop.SqoopOptions;
-import com.cloudera.sqoop.metastore.JobData;
-import com.cloudera.sqoop.metastore.JobStorage;
-import com.cloudera.sqoop.tool.SqoopTool;
 
 /**
  * JobStorage implementation that uses an HSQLDB-backed database to
@@ -177,7 +174,7 @@ public class HsqldbJobStorage extends JobStorage {
             metastoreUser, metastorePassword);
       }
 
-      connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+      connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
       connection.setAutoCommit(false);
 
       // Initialize the root schema.
@@ -241,9 +238,8 @@ public class HsqldbJobStorage extends JobStorage {
   @Override
   /** {@inheritDoc} */
   public boolean canAccept(Map<String, String> descriptor) {
-    // We return true if the desciptor contains a connect string to find
-    // the database.
-    return descriptor.get(META_CONNECT_KEY) != null;
+      String metaConnectString = descriptor.get(META_CONNECT_KEY);
+      return metaConnectString != null && metaConnectString.startsWith("jdbc:hsqldb");
   }
 
   @Override

@@ -18,6 +18,27 @@
 
 package org.apache.sqoop.manager;
 
+import com.cloudera.sqoop.SqoopOptions;
+import com.cloudera.sqoop.hbase.HBaseUtil;
+import com.cloudera.sqoop.mapreduce.DataDrivenImportJob;
+import com.cloudera.sqoop.mapreduce.HBaseImportJob;
+import com.cloudera.sqoop.mapreduce.ImportJobBase;
+import com.cloudera.sqoop.mapreduce.JdbcExportJob;
+import com.cloudera.sqoop.mapreduce.JdbcUpdateExportJob;
+import com.cloudera.sqoop.mapreduce.db.DataDrivenDBInputFormat;
+import com.cloudera.sqoop.util.ExportException;
+import com.cloudera.sqoop.util.ImportException;
+import com.cloudera.sqoop.util.ResultSetPrinter;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.sqoop.accumulo.AccumuloUtil;
+import org.apache.sqoop.mapreduce.AccumuloImportJob;
+import org.apache.sqoop.mapreduce.HBaseBulkImportJob;
+import org.apache.sqoop.mapreduce.JdbcCallExportJob;
+import org.apache.sqoop.util.LoggingUtils;
+import org.apache.sqoop.util.SqlTypeMap;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -36,28 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.sqoop.accumulo.AccumuloUtil;
-import org.apache.sqoop.mapreduce.AccumuloImportJob;
-import org.apache.sqoop.mapreduce.HBaseBulkImportJob;
-import org.apache.sqoop.mapreduce.JdbcCallExportJob;
-import org.apache.sqoop.util.LoggingUtils;
-import org.apache.sqoop.util.SqlTypeMap;
-
-import com.cloudera.sqoop.SqoopOptions;
-import com.cloudera.sqoop.hbase.HBaseUtil;
-import com.cloudera.sqoop.mapreduce.DataDrivenImportJob;
-import com.cloudera.sqoop.mapreduce.HBaseImportJob;
-import com.cloudera.sqoop.mapreduce.ImportJobBase;
-import com.cloudera.sqoop.mapreduce.JdbcExportJob;
-import com.cloudera.sqoop.mapreduce.JdbcUpdateExportJob;
-import com.cloudera.sqoop.mapreduce.db.DataDrivenDBInputFormat;
-import com.cloudera.sqoop.util.ExportException;
-import com.cloudera.sqoop.util.ImportException;
-import com.cloudera.sqoop.util.ResultSetPrinter;
 
 /**
  * ConnManager implementation for generic SQL-compliant database.

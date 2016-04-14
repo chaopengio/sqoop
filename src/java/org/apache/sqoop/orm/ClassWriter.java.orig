@@ -18,24 +18,6 @@
 
 package org.apache.sqoop.orm;
 
-import com.cloudera.sqoop.SqoopOptions;
-import com.cloudera.sqoop.lib.BigDecimalSerializer;
-import com.cloudera.sqoop.lib.BlobRef;
-import com.cloudera.sqoop.lib.BooleanParser;
-import com.cloudera.sqoop.lib.ClobRef;
-import com.cloudera.sqoop.lib.DelimiterSet;
-import com.cloudera.sqoop.lib.FieldFormatter;
-import com.cloudera.sqoop.lib.JdbcWritableBridge;
-import com.cloudera.sqoop.lib.LargeObjectLoader;
-import com.cloudera.sqoop.lib.LobSerializer;
-import com.cloudera.sqoop.lib.RecordParser;
-import com.cloudera.sqoop.lib.SqoopRecord;
-import com.cloudera.sqoop.manager.ConnManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.sqoop.mapreduce.ImportJobBase;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,6 +29,25 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.sqoop.mapreduce.ImportJobBase;
+
+import com.cloudera.sqoop.SqoopOptions;
+import com.cloudera.sqoop.manager.ConnManager;
+import com.cloudera.sqoop.lib.BigDecimalSerializer;
+import com.cloudera.sqoop.lib.BooleanParser;
+import com.cloudera.sqoop.lib.DelimiterSet;
+import com.cloudera.sqoop.lib.FieldFormatter;
+import com.cloudera.sqoop.lib.JdbcWritableBridge;
+import com.cloudera.sqoop.lib.LargeObjectLoader;
+import com.cloudera.sqoop.lib.LobSerializer;
+import com.cloudera.sqoop.lib.RecordParser;
+import com.cloudera.sqoop.lib.BlobRef;
+import com.cloudera.sqoop.lib.ClobRef;
+import com.cloudera.sqoop.lib.SqoopRecord;
 
 /**
  * Creates an ORM class to represent a table from a database.
@@ -1374,12 +1375,12 @@ public class ClassWriter {
    */
   private void parseNullVal(String javaType, String colName, StringBuilder sb) {
     if (javaType.equals("String")) {
-      sb.append("    if (__cur_str.equalsIgnoreCase(\""
+      sb.append("    if (__cur_str.equals(\""
          + this.options.getInNullStringValue() + "\")) { this.");
       sb.append(colName);
       sb.append(" = null; } else {\n");
     } else {
-      sb.append("    if (__cur_str.equalsIgnoreCase(\""
+      sb.append("    if (__cur_str.equals(\""
          + this.options.getInNullNonStringValue());
       sb.append("\") || __cur_str.length() == 0) { this.");
       sb.append(colName);

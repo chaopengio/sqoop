@@ -49,5 +49,8 @@ under the License.
       conf="common->default"/>
     <dependency org="hsqldb" name="hsqldb" rev="${hsqldb.version}"
       conf="common->default"/>
+    <dependency org="mysql" name="mysql-connector-java" rev="${mysqldb.version}"
+      conf="common->default"/>
+
   </dependencies>
 </ivy-module>
